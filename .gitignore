@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Production
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing and coverage
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Local caches
+.turbo/
+.vercel/
+.eslintcache
+.cache/
+.pnpm-store/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
