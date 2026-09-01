@@ -1,13 +1,23 @@
-import { RoutePlaceholder } from "@/components/layout/route-placeholder";
+import { ContactCta } from "@/components/sections/home/contact-cta";
+import { CredibilityStrip } from "@/components/sections/home/credibility-strip";
+import { EngineeringApproach } from "@/components/sections/home/engineering-approach";
+import { EngineeringFocus } from "@/components/sections/home/engineering-focus";
+import { ExperiencePreview } from "@/components/sections/home/experience-preview";
+import { FeaturedWork } from "@/components/sections/home/featured-work";
+import { HeroSection } from "@/components/sections/home/hero-section";
+import { LatestThinking } from "@/components/sections/home/latest-thinking";
 
 export default function Home() {
   return (
-    <RoutePlaceholder
-      ctaHref="/work"
-      ctaLabel="View Work"
-      description="Backend & AI/ML Engineering Portfolio. Site shell initialized."
-      eyebrow="Portfolio"
-      title="Backend & AI/ML Engineering Portfolio"
-    />
+    <>
+      <HeroSection />
+      <CredibilityStrip />
+      <EngineeringFocus />
+      <FeaturedWork />
+      <EngineeringApproach />
+      <LatestThinking />
+      <ExperiencePreview />
+      <ContactCta />
+    </>
   );
 }

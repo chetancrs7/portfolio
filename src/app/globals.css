@@ -127,17 +127,20 @@ body {
 
 @layer components {
   .container-page {
-    width: min(100% - (var(--page-padding) * 2), var(--container-page));
+    width: min(calc(100% - (var(--page-padding) * 2)), var(--container-page));
     margin-inline: auto;
   }
 
   .container-reading {
-    width: min(100% - (var(--page-padding) * 2), var(--container-reading));
+    width: min(
+      calc(100% - (var(--page-padding) * 2)),
+      var(--container-reading)
+    );
     margin-inline: auto;
   }
 
   .container-wide {
-    width: min(100% - (var(--page-padding) * 2), var(--container-wide));
+    width: min(calc(100% - (var(--page-padding) * 2)), var(--container-wide));
     margin-inline: auto;
   }
 
@@ -146,7 +149,7 @@ body {
   }
 
   .type-display {
-    font-size: clamp(3rem, 7vw, 5.75rem);
+    font-size: clamp(2.625rem, 11vw, 5.75rem);
     line-height: 0.94;
     font-weight: 750;
     letter-spacing: 0;
