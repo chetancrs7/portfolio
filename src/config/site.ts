@@ -17,4 +17,5 @@ export const siteConfig = {
   placeholders: {
     resume: true,
   },
+  availability: "Available for opportunities",
 } as const;
