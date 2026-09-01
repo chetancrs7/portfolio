@@ -25,3 +25,9 @@ Navigation items live in `src/config/navigation.ts`, while site metadata and ext
 Most shell components remain Server Components by default. The active navigation link helper and Sheet-based mobile menu are isolated behind small client components so route highlighting, focus management, Escape-to-close behavior, and tap-to-close behavior can work without making the full shell client-rendered.
 
 `PageContainer` centralizes default, wide, and reading-width layouts. Route skeletons use shared spacing and remain intentionally minimal until content-specific branches build the real homepage and page content.
+
+## Homepage
+
+The homepage is assembled in `src/app/page.tsx` from focused section components under `src/components/sections/home`. Repeated placeholder content lives in `src/data/home.ts`, keeping presentation separate from temporary copy while avoiding a premature CMS or full Work content model.
+
+The homepage remains mostly server-rendered and reuses the established design-system primitives: `PageContainer`, shadcn cards, badges, buttons, the technical grid, and ambient glow. The visual hierarchy starts with a large backend + AI/ML hero, followed by a credibility strip, engineering focus areas, selected work, engineering approach, writing preview, experience preview, and final contact CTA.
