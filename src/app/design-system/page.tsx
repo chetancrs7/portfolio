@@ -81,7 +81,7 @@ const colorTokens = [
 
 export default function DesignSystemPage() {
   return (
-    <main className="technical-background min-h-screen overflow-hidden">
+    <div className="technical-background min-h-screen overflow-hidden">
       <section className="border-border relative isolate border-b">
         <TechnicalGrid className="opacity-45" />
         <AmbientGlow className="-top-36 left-[8%]" tone="blue" />
@@ -442,6 +442,6 @@ export default function DesignSystemPage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -1,9 +1,13 @@
+import { RoutePlaceholder } from "@/components/layout/route-placeholder";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <h1 className="text-2xl font-semibold tracking-normal">
-        Portfolio - Initial Setup
-      </h1>
-    </main>
+    <RoutePlaceholder
+      ctaHref="/work"
+      ctaLabel="View Work"
+      description="Backend & AI/ML Engineering Portfolio. Site shell initialized."
+      eyebrow="Portfolio"
+      title="Backend & AI/ML Engineering Portfolio"
+    />
   );
 }

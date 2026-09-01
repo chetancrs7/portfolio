@@ -4,10 +4,14 @@ import { GeistSans } from "geist/font/sans";
 
 import "@/app/globals.css";
 import { siteConfig } from "@/config/site";
+import { SiteShell } from "@/components/layout/site-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata: Metadata = {
-  title: siteConfig.name,
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.name}`,
+  },
   description: siteConfig.description,
 };
 
@@ -22,7 +26,9 @@ export default function RootLayout({
       lang="en"
     >
       <body>
-        <TooltipProvider>{children}</TooltipProvider>
+        <TooltipProvider>
+          <SiteShell>{children}</SiteShell>
+        </TooltipProvider>
       </body>
     </html>
   );
