@@ -21,7 +21,10 @@ export function PageContainer({
   ...props
 }: PageContainerProps) {
   return (
-    <div className={cn(containerClassName[variant], className)} {...props}>
+    <div
+      className={cn(containerClassName[variant], "min-w-0", className)}
+      {...props}
+    >
       {children}
     </div>
   );
