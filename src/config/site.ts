@@ -1,7 +1,9 @@
 export const siteConfig = {
-  name: "Backend + AI/ML Engineering Portfolio",
+  name: "Your Name",
+  title: "Your Name - Backend & AI/ML Engineer",
   description:
-    "A modern developer portfolio showcasing backend engineering, AI/ML projects, system design case studies, technical research, and engineering insights.",
+    "Backend and AI/ML engineering portfolio featuring technical projects, system design, research and engineering writing.",
+  url: "https://example.com",
   author: {
     name: "Your Name",
     email: "hello@example.com",
@@ -9,13 +11,10 @@ export const siteConfig = {
   links: {
     github: "https://github.com/your-username",
     linkedin: "https://www.linkedin.com/in/your-username",
-    resume: "/documents/resume.pdf",
+    email: "mailto:hello@example.com",
+    resume: "#resume-coming-soon",
   },
-  navigation: [
-    { title: "Home", href: "/" },
-    { title: "Work", href: "/work" },
-    { title: "Experience", href: "/experience" },
-    { title: "About", href: "/about" },
-    { title: "Contact", href: "/contact" },
-  ],
+  placeholders: {
+    resume: true,
+  },
 } as const;
