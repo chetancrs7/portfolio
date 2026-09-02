@@ -41,10 +41,16 @@ Show estimates only when the assumptions are clear.
 
 ## High-Level Architecture
 
-<ArchitecturePanel
-  title="High-level architecture"
-  nodes={["Service", "Queue", "Worker", "Provider"]}
-/>
+<DiagramPanel title="High-level architecture" expandable wide>
+  <MermaidDiagram
+    accessibleLabel="System architecture diagram."
+    chart={`flowchart LR
+  Service[Service] --> Queue[Queue]
+  Queue --> Worker[Worker]
+  Worker --> Provider[Provider]
+  Worker --> Store[(State Store)]`}
+  />
+</DiagramPanel>
 
 ## Component Deep Dives
 

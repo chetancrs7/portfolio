@@ -78,7 +78,10 @@ Technical components available in MDX:
 - `Callout`
 - `Figure`
 - `WideContent`
-- `ArchitecturePanel`
+- `DiagramPanel`
+- `MermaidDiagram`
+- `HybridSentimentArchitecture`
+- `ArchitecturePanel` (legacy placeholder, avoid for new content)
 - `DataFlow`
 - `ApiEndpoint`
 - `ApiEndpointList`
@@ -94,6 +97,8 @@ Technical components available in MDX:
 - `Limitations`
 
 Use JSX components for structured technical evidence. Keep most source content as Markdown prose, lists, and tables.
+
+Use `DiagramPanel` with `MermaidDiagram` for authored technical diagrams, and use custom SVG components for flagship visuals that need specific layout. See `docs/technical-diagrams.md`.
 
 ## Images
 

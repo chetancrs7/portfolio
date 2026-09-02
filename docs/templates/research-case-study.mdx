@@ -23,10 +23,15 @@ Describe the experimental method.
 
 ## Model Architecture
 
-<ArchitecturePanel
-  title="Model architecture"
-  nodes={["Input", "Features", "Model", "Prediction"]}
-/>
+<DiagramPanel title="Model architecture" expandable wide>
+  <MermaidDiagram
+    accessibleLabel="Model architecture diagram."
+    chart={`flowchart LR
+  Input[Input] --> Features[Features]
+  Features --> Model[Model]
+  Model --> Prediction[Prediction]`}
+  />
+</DiagramPanel>
 
 ## Experiment Setup
 

@@ -22,6 +22,10 @@ Use `.container-page` for normal page content, `.container-reading` for prose, `
 
 Cards use dark translucent fills, subtle borders, restrained hover states, and optional faint technical texture. The available variants are `default`, `interactive`, `featured`, and `technical`.
 
+## Diagrams
+
+Technical diagrams use `DiagramPanel` for the shared figure shell, with Mermaid diagrams rendered through a client-only `MermaidDiagram` component and flagship visuals authored as custom React SVG components. Complex diagrams keep a readable minimum width and scroll inside the panel on narrow screens.
+
 ## Buttons And Badges
 
 Buttons are compact, rounded, and precise. Primary buttons use an off-white fill on the dark background; secondary and outline buttons use dark surfaces with subtle borders. Badges are small, uppercase, mono-styled, and low-contrast, with status, blue, and violet variants for technical labeling.

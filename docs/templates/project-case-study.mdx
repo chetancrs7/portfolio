@@ -14,15 +14,34 @@ Explain the technical problem and why a simpler approach was not enough.
 
 ## Architecture
 
-<ArchitecturePanel
+<DiagramPanel
   title="High-level architecture"
   description="Describe the main system boundary."
-  nodes={["Client", "API", "Database", "Worker"]}
-/>
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="High-level architecture diagram."
+    chart={`flowchart LR
+  Client[Client] --> API[API]
+  API --> DB[(Database)]
+  API --> Queue[Queue]
+  Queue --> Worker[Worker]`}
+  />
+</DiagramPanel>
 
 ## Data Flow
 
-<DataFlow steps={["Request", "Validate", "Persist", "Process", "Respond"]} />
+<DiagramPanel title="Data flow" expandable wide>
+  <MermaidDiagram
+    accessibleLabel="Request data flow from validation through response."
+    chart={`flowchart LR
+  Request[Request] --> Validate[Validate]
+  Validate --> Persist[Persist]
+  Persist --> Process[Process]
+  Process --> Respond[Respond]`}
+  />
+</DiagramPanel>
 
 ## Backend Design
 

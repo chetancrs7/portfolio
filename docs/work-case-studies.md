@@ -42,6 +42,9 @@ Reusable components live in `src/components/work/case-study/`:
 - `MetricStrip`
 - `CaseStudySection`
 - `CaseStudyToc`
+- `DiagramPanel`
+- `MermaidDiagram`
+- `HybridSentimentArchitecture`
 - `ArchitecturePanel`
 - `DataFlow`
 - `ApiEndpointList`
@@ -79,9 +82,13 @@ Metric labels describe what the number represents. The system avoids vague claim
 
 ## Architecture And Data Flow
 
-`ArchitecturePanel` provides a temporary static architecture representation with simple nodes, description, and caption. It is intentionally small and non-animated so later Mermaid diagrams can replace the inner representation without changing the route architecture.
+`DiagramPanel` provides the standard figure shell for technical diagrams, including title, description, caption, wide layout, horizontal overflow, and optional expand behavior.
 
-`DataFlow` presents compact ordered steps and uses horizontal overflow on narrow screens.
+`MermaidDiagram` renders text-authored diagrams inside a small client boundary. Flowcharts, sequence diagrams, and ER diagrams are the preferred defaults for case-study architecture, request lifecycles, and data relationships.
+
+`HybridSentimentArchitecture` is the current custom React SVG flagship diagram. Custom SVG diagrams should be used when a case study needs a precise visual explanation that Mermaid cannot express cleanly.
+
+`ArchitecturePanel` and `DataFlow` remain available as legacy structured blocks, but new MDX content should start with `DiagramPanel`.
 
 ## Technical Evidence Patterns
 
@@ -98,11 +105,11 @@ The system supports:
 
 Technical tables and diagrams are wrapped in overflow containers so they can remain readable on mobile.
 
-## Temporary Detail Content
+## MDX Detail Content
 
-Detail content currently lives in `src/content/work/details/data.ts` as typed structured data. The Work registry remains responsible for canonical metadata such as slug, title, summary, type, status, technologies, metrics, and links.
+Long-form detail content lives in `content/work` as MDX. The Work registry remains responsible for canonical metadata such as slug, title, summary, type, status, technologies, metrics, and links.
 
-The detail layer handles long-form sections only. It is deliberately close to a future content document shape and avoids deeply coupled JSX authoring.
+The MDX layer handles long-form sections only. It keeps prose close to the content while importing structured evidence blocks through the shared MDX component map.
 
 Current rich examples:
 
@@ -118,16 +125,8 @@ System-design pages and `design-study` status pages show a clear `Design Study` 
 
 Research pages show a `Research / Experiment` disclosure so prototype or experimental work is not framed as production software.
 
-## Future MDX Migration
+## Technical Diagrams
 
-Deferred to `feat/mdx-content`:
+Deferred to `content/flagship-case-study`: deeper flagship storytelling, richer interactive explainers, production screenshots, and expanded ML error slices.
 
-- MDX content files
-- full article markdown rendering
-- Shiki syntax highlighting
-- Mermaid diagrams
-- automated heading parsing
-- code-heavy walkthroughs
-- richer per-entry authoring workflow
-
-The current branch should remain useful after MDX lands: the route, templates, TOC contract, wide-content wrappers, and shared technical components can continue to render structured blocks or MDX-provided sections.
+The current diagram system focuses on reusable infrastructure for existing case studies. See `docs/technical-diagrams.md` for authoring, accessibility, responsive, and Mermaid error-handling notes.
