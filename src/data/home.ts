@@ -78,39 +78,6 @@ export const engineeringFocusAreas = [
   },
 ] as const;
 
-export const featuredWork = [
-  {
-    title: "AI Financial Intelligence Platform",
-    type: "Project",
-    summary:
-      "Event-driven financial backend combining transaction processing, machine-learning classification and semantic analytics.",
-    areas: ["Backend", "AI", "Distributed Systems"],
-    technologies: "FastAPI · PostgreSQL · Kafka · PyTorch",
-    href: "/work",
-    emphasis: "flagship",
-  },
-  {
-    title: "Retrieval Evaluation Lab",
-    type: "Research",
-    summary:
-      "A structured testbed for comparing retrieval quality, prompt behavior and response grounding across AI workflows.",
-    areas: ["RAG", "Evaluation", "NLP"],
-    technologies: "Python · Embeddings · Vector Search",
-    href: "/work",
-    emphasis: "standard",
-  },
-  {
-    title: "Service Reliability Blueprint",
-    type: "System Design",
-    summary:
-      "A backend architecture study focused on idempotency, retries, queue boundaries and graceful degradation.",
-    areas: ["Architecture", "Reliability", "Queues"],
-    technologies: "Redis · Workers · Observability",
-    href: "/work",
-    emphasis: "standard",
-  },
-] as const;
-
 export const engineeringPrinciples = [
   {
     index: "01",
@@ -135,36 +102,6 @@ export const engineeringPrinciples = [
     title: "Design for failure",
     description:
       "Plan for retries, idempotency, timeouts, graceful degradation and recoverability.",
-  },
-] as const;
-
-export const writingPreviews = [
-  {
-    type: "Writing",
-    title: "Why RAG Systems Fail in Production",
-    description:
-      "Notes on retrieval quality, context boundaries, evaluation gaps and operational feedback loops.",
-    category: "AI Infrastructure",
-    readingTime: "8 min",
-    href: "/work",
-  },
-  {
-    type: "Writing",
-    title: "Designing Idempotent Event Consumers",
-    description:
-      "A practical look at message processing, deduplication, retries and failure recovery.",
-    category: "Backend Systems",
-    readingTime: "6 min",
-    href: "/work",
-  },
-  {
-    type: "Writing",
-    title: "Scaling Backend APIs Beyond One Instance",
-    description:
-      "Service boundaries, shared state, caching and observability for growing API systems.",
-    category: "Distributed Systems",
-    readingTime: "7 min",
-    href: "/work",
   },
 ] as const;
 

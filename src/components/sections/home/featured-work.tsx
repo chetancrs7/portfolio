@@ -6,11 +6,16 @@ import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/sections/home/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { featuredWork } from "@/data/home";
+import {
+  getFeaturedWork,
+  technicalAreaLabels,
+  workTypeLabels,
+  type WorkItem,
+} from "@/content/work";
 import { cn } from "@/lib/utils";
 
 export function FeaturedWork() {
-  const [flagship, ...supportingWork] = featuredWork;
+  const [flagship, ...supportingWork] = getFeaturedWork().slice(0, 3);
 
   return (
     <section className="section-space pt-0">
@@ -29,7 +34,7 @@ export function FeaturedWork() {
           />
           <div className="grid gap-5">
             {supportingWork.map((item) => (
-              <FeaturedWorkCard item={item} key={item.title} />
+              <FeaturedWorkCard item={item} key={item.slug} />
             ))}
           </div>
         </div>
@@ -38,7 +43,10 @@ export function FeaturedWork() {
   );
 }
 
-type FeaturedWorkItem = (typeof featuredWork)[number];
+type FeaturedWorkItem = Pick<
+  WorkItem,
+  "areas" | "slug" | "summary" | "technologies" | "title" | "type"
+>;
 
 function FeaturedWorkCard({
   className,
@@ -63,10 +71,12 @@ function FeaturedWorkCard({
       {large ? <FlagshipBorderBeam /> : null}
       <CardHeader>
         <div className="mb-7 flex flex-wrap items-center gap-2">
-          <Badge variant={large ? "status" : "outline"}>{item.type}</Badge>
+          <Badge variant={large ? "status" : "outline"}>
+            {workTypeLabels[item.type]}
+          </Badge>
           {item.areas.map((area) => (
             <Badge key={area} variant="outline">
-              {area}
+              {technicalAreaLabels[area]}
             </Badge>
           ))}
         </div>
@@ -84,11 +94,11 @@ function FeaturedWorkCard({
           {item.summary}
         </p>
         <p className="type-mono border-border text-muted-foreground mt-7 border-t pt-5">
-          {item.technologies}
+          {item.technologies.join(" · ")}
         </p>
         <Link
           className="text-foreground hover:text-accent-cyan focus-visible:ring-ring/45 mt-7 inline-flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors outline-none focus-visible:ring-3"
-          href={item.href}
+          href="/work"
         >
           Explore
           <ArrowRight

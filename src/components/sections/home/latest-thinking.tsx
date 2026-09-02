@@ -4,9 +4,16 @@ import { ArrowRight } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/sections/home/section-heading";
 import { Badge } from "@/components/ui/badge";
-import { writingPreviews } from "@/data/home";
+import {
+  getWorkByType,
+  getWritingReadingTime,
+  technicalAreaLabels,
+  workTypeLabels,
+} from "@/content/work";
 
 export function LatestThinking() {
+  const writingPreviews = getWorkByType("writing").slice(0, 3);
+
   return (
     <section className="section-space pt-0">
       <PageContainer>
@@ -29,13 +36,13 @@ export function LatestThinking() {
           {writingPreviews.map((item) => (
             <Link
               className="group border-border hover:bg-muted/20 focus-visible:ring-ring/45 grid gap-5 border-b py-6 transition-colors outline-none last:border-b-0 focus-visible:ring-3 sm:grid-cols-[9rem_1fr_auto]"
-              href={item.href}
-              key={item.title}
+              href="/work"
+              key={item.slug}
             >
               <div>
-                <Badge variant="outline">{item.type}</Badge>
+                <Badge variant="outline">{workTypeLabels[item.type]}</Badge>
                 <p className="type-mono text-muted-foreground mt-3">
-                  {item.readingTime}
+                  {getWritingReadingTime(item)}
                 </p>
               </div>
               <div>
@@ -43,11 +50,13 @@ export function LatestThinking() {
                   {item.title}
                 </h3>
                 <p className="type-body text-muted-foreground mt-3 max-w-3xl">
-                  {item.description}
+                  {item.summary}
                 </p>
               </div>
               <p className="type-mono text-muted-foreground sm:text-right">
-                {item.category}
+                {item.areas
+                  .map((area) => technicalAreaLabels[area])
+                  .join(" / ")}
               </p>
             </Link>
           ))}
