@@ -30,17 +30,28 @@ Compare classical structural features, neural representations, and the combined 
 
 ## Model Architecture
 
-<ArchitecturePanel
-  title="Semantic + structural fusion"
+<DiagramPanel
+  title="Semantic + Structural Fusion"
   description="Two feature paths feed a gated fusion stage before classification."
-  nodes={[
-    "Text",
-    "DeBERTa Features",
-    "Structural Features",
-    "Gate Alpha",
-    "Classifier",
-  ]}
-/>
+  caption="This research view emphasizes experiment structure rather than production serving concerns."
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="Model architecture showing text split into semantic and structural feature paths before gated fusion and classification."
+    chart={`flowchart LR
+  Text[Input Text] --> Clean[Normalization]
+  Clean --> Semantic[DeBERTa Semantic Features]
+  Clean --> Structural[Structural Sentiment Features]
+  Semantic --> KAN[KAN Expert]
+  Structural --> XGB[XGBoost Expert]
+  KAN --> Gate[Learned Fusion Gate]
+  XGB --> Gate
+  Gate --> Classifier[Sentiment Classifier]
+  Gate -. mean alpha approx 0.924 .-> Audit[Gate Behavior Audit]
+  Classifier --> Prediction[Sentiment Label + Confidence]`}
+  />
+</DiagramPanel>
 
 ## Experiment Setup
 

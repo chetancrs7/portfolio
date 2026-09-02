@@ -61,6 +61,51 @@ The first capacity model should size queues and workers around peak fan-out, pro
 
 ## Data Model
 
+<DiagramPanel
+  title="Notification Data Relationships"
+  description="The durable data model keeps incoming intent separate from per-channel delivery attempts and provider outcomes."
+  caption="Entity names and fields are representative for the design study; they are not claimed as an implemented production schema."
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="Entity relationship diagram connecting notification intents, recipients, delivery attempts, and provider events."
+    chart={`erDiagram
+  RECIPIENTS ||--o{ NOTIFICATION_INTENTS : receives
+  NOTIFICATION_INTENTS ||--o{ DELIVERY_ATTEMPTS : records
+  DELIVERY_ATTEMPTS ||--o{ PROVIDER_EVENTS : receives
+
+RECIPIENTS {
+string id PK
+string user_id
+string locale
+}
+NOTIFICATION_INTENTS {
+string id PK
+string idempotency_key
+string recipient_id FK
+string template
+string status
+datetime created_at
+}
+DELIVERY_ATTEMPTS {
+string id PK
+string notification_id FK
+string channel
+string provider
+int attempt_count
+string status
+}
+PROVIDER_EVENTS {
+string id PK
+string attempt_id FK
+string provider_status
+datetime received_at
+}`}
+/>
+
+</DiagramPanel>
+
 <DatabaseTable
   name="notification_intents"
   columns={[
@@ -102,18 +147,32 @@ The first capacity model should size queues and workers around peak fan-out, pro
 
 ## High-Level Architecture
 
-<ArchitecturePanel
-  title="Asynchronous notification pipeline"
+<DiagramPanel
+  title="Distributed Notification Architecture"
   description="The API records notification intent, publishes work to a queue, and lets channel workers handle provider-specific delivery and retries."
-  nodes={[
-    "Product Service",
-    "Notification API",
-    "Queue",
-    "Channel Worker",
-    "Provider",
-  ]}
-  caption="Architecture diagram is intentionally simple until Mermaid support exists."
-/>
+  caption="Redis presence is included as a design assumption for online routing decisions; persistent notification state remains in the database."
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="Architecture diagram showing client, API, Kafka, fanout workers, push, websocket, email channels, Redis presence, and datastores."
+    chart={`flowchart LR
+  Product[Product Service] --> API[Notification API]
+  Client[Client App] --> API
+  API --> IntentDB[(Notification Store)]
+  API --> Outbox[(Outbox Table)]
+  Outbox --> Kafka[Kafka Topic]
+  Kafka --> Fanout[Fanout Workers]
+  Fanout --> Push[Push Provider]
+  Fanout --> WebSocket[WebSocket Gateway]
+  Fanout --> Email[Email Provider]
+  Fanout --> AttemptsDB[(Delivery Attempts)]
+  Fanout -. presence lookup .-> Redis[(Redis User Presence)]
+  Push --> ProviderEvents[Provider Events]
+  Email --> ProviderEvents
+  ProviderEvents --> AttemptsDB`}
+  />
+</DiagramPanel>
 
 ## Component Deep Dives
 
@@ -129,6 +188,44 @@ async function handleNotification(event: NotificationEvent) {
 ```
 
 ## Failure Scenarios
+
+<DiagramPanel
+  title="Retry And Dead-Letter Sequence"
+  description="Worker failures are handled as redelivery and bounded retry problems instead of exactly-once delivery claims."
+  caption="This sequence focuses on one notification intent moving through Kafka, a worker, provider timeout handling, and a dead-letter decision."
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="Sequence diagram showing notification API publishing to Kafka, worker processing, provider timeout, retry, and dead-letter handling."
+    chart={`sequenceDiagram
+  participant API as Notification API
+  participant DB as Notification Store
+  participant Kafka as Kafka
+  participant Worker as Fanout Worker
+  participant Provider as Email Provider
+  participant DLQ as Dead Letter Topic
+
+API->>DB: Persist notification intent
+API->>Kafka: Publish delivery work
+Kafka->>Worker: Deliver message
+Worker->>DB: Record attempt started
+Worker->>Provider: Send email
+Provider--xWorker: Timeout
+Worker->>DB: Record failed attempt
+Worker->>Kafka: Retry with backoff
+Kafka->>Worker: Redeliver message
+Worker->>Provider: Send email
+alt Retry budget exhausted
+Worker->>DLQ: Publish failed delivery
+Worker->>DB: Mark channel dead-lettered
+else Provider accepts
+Provider-->>Worker: Accepted
+Worker->>DB: Mark channel delivered
+end`}
+/>
+
+</DiagramPanel>
 
 <FailureMode
   title="Worker Crash"

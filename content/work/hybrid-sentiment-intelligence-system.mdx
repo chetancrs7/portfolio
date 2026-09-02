@@ -28,19 +28,15 @@ The engineering problem is to combine both views while keeping the result interp
 
 ## Architecture
 
-<ArchitecturePanel
-  title="Hybrid inference pipeline"
+<DiagramPanel
+  title="Hybrid Expert Fusion Architecture"
   description="Semantic and structural experts operate independently before a learned fusion gate combines their outputs."
-  nodes={[
-    "Tweet Text",
-    "DeBERTa Embeddings",
-    "KAN Expert",
-    "XGBoost Expert",
-    "Fusion Gate",
-    "Prediction",
-  ]}
-  caption="Temporary static architecture view. Mermaid diagrams are intentionally deferred."
-/>
+  caption="The average learned gate alpha is approximately 0.924 in the known evaluation context, which suggests the fusion model relies heavily on the semantic expert while still preserving a structural path."
+  expandable
+  wide
+>
+  <HybridSentimentArchitecture />
+</DiagramPanel>
 
 The semantic path uses DeBERTa representations and a KAN semantic expert. The structural path uses linguistic features and an XGBoost expert. The fusion stage learns a gate alpha so the final prediction can represent how strongly the semantic side contributed.
 
@@ -52,18 +48,32 @@ The semantic path uses DeBERTa representations and a KAN semantic expert. The st
 
 ## Data Flow
 
-<DataFlow
-  steps={[
-    "Request",
-    "Validation",
-    "Preprocessing",
-    "Semantic Features",
-    "Structural Features",
-    "Fusion",
-    "Response",
-  ]}
+<DiagramPanel
+  title="Serving Sequence"
+  description="A synchronous request can keep the service boundary stable while model work remains an explicit inference capability."
   caption="The serving path keeps input validation separate from model execution so batch inference can move behind a worker later."
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="Sequence diagram showing sentiment inference from client request through validation, preprocessing, model execution, and response persistence."
+    chart={`sequenceDiagram
+  participant Client as Client Application
+  participant API as Sentiment API
+  participant Preprocess as Preprocessing
+  participant Model as Fusion Model
+  participant DB as Prediction Store
+
+Client->>API: POST /v1/sentiment/inference
+API->>API: Validate text and idempotency key
+API->>Preprocess: Normalize and extract features
+Preprocess->>Model: Semantic and structural feature bundle
+Model-->>API: Label, confidence, gate alpha
+API->>DB: Persist versioned prediction
+API-->>Client: Prediction response`}
 />
+
+</DiagramPanel>
 
 ## Backend Design
 
