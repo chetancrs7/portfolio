@@ -16,6 +16,28 @@ export const rawWorkItems = [
     featured: true,
     priority: 1,
     contentPath: "content/work/hybrid-sentiment-intelligence-system.mdx",
+    metrics: [
+      {
+        label: "Test Accuracy",
+        value: "0.8741",
+        description: "Final fusion model classification accuracy.",
+      },
+      {
+        label: "Macro F1",
+        value: "0.874",
+        description: "Class-balanced F1 score.",
+      },
+      {
+        label: "AUC",
+        value: "0.947",
+        description: "Ranking quality across thresholds.",
+      },
+      {
+        label: "ECE",
+        value: "0.0065",
+        description: "Expected calibration error.",
+      },
+    ],
     project: {
       role: "Modeling and backend architecture",
       outcome: "Structured as a future case study around hybrid model design.",
