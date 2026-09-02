@@ -111,9 +111,20 @@ Store assets by Work slug under `public/images/work/[slug]/`. Do not use vague a
 
 ## Code Blocks
 
-Code fences render as clean dark preformatted blocks with horizontal scrolling and Geist Mono. Syntax highlighting, line highlighting, and copy buttons are intentionally deferred to `feat/code-highlighting`.
+Code fences render as Shiki-highlighted blocks with compact metadata headers, language labels, optional filenames, copy buttons, optional line numbers, and highlighted lines.
 
 Inline code uses a compact bordered treatment suitable for identifiers such as `account_id`.
+
+Example:
+
+````md
+```python title="src/inference/predict.py" showLineNumbers {4-7}
+async def predict_sentiment(text: str) -> Prediction:
+    return await model.predict(text)
+```
+````
+
+Use `text` for logs, file trees, output, and pseudocode. See `docs/code-highlighting.md` for the full authoring syntax.
 
 ## Metric Honesty
 
