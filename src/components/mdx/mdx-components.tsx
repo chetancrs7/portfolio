@@ -4,6 +4,7 @@ import { ExternalLink, Info, LinkIcon, TriangleAlert } from "lucide-react";
 import type { MDXComponents } from "mdx/types";
 import type * as React from "react";
 
+import { CodeBlock, CodeFigure } from "@/components/mdx/code-block";
 import {
   ApiEndpoint,
   ApiEndpointList,
@@ -49,6 +50,7 @@ export function usePortfolioMDXComponents(
     a: MdxLink,
     blockquote: MdxBlockquote,
     code: MdxInlineCode,
+    figure: CodeFigure,
     h2: MdxH2,
     h3: MdxH3,
     hr: MdxHr,
@@ -56,7 +58,7 @@ export function usePortfolioMDXComponents(
     li: MdxLi,
     ol: MdxOl,
     p: MdxParagraph,
-    pre: MdxPre,
+    pre: CodeBlock,
     strong: MdxStrong,
     table: MdxTable,
     tbody: MdxTbody,
@@ -307,26 +309,6 @@ function MdxInlineCode({
       )}
       {...props}
     />
-  );
-}
-
-function MdxPre({
-  children,
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLPreElement>) {
-  return (
-    <WideContent>
-      <pre
-        className={cn(
-          "border-border bg-background/75 text-muted-foreground my-7 min-w-[34rem] overflow-x-auto rounded-xl border p-5 font-mono text-sm leading-6",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </pre>
-    </WideContent>
   );
 }
 
