@@ -375,6 +375,118 @@ body {
     text-align: right;
     user-select: none;
   }
+
+  .diagram-surface {
+    overflow-x: auto;
+    scrollbar-color: rgb(142 161 190 / 0.35) transparent;
+  }
+
+  .diagram-mermaid {
+    width: 100%;
+  }
+
+  .diagram-mermaid svg {
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+  }
+
+  .diagram-mermaid text,
+  .diagram-mermaid .label {
+    font-family:
+      var(--font-geist-sans), Arial, Helvetica, sans-serif !important;
+    letter-spacing: 0 !important;
+  }
+
+  .diagram-mermaid .edgeLabel,
+  .diagram-mermaid .labelText {
+    color: var(--foreground) !important;
+  }
+
+  .diagram-mermaid .edgeLabel .labelBkg,
+  .diagram-mermaid .edgeLabel rect {
+    fill: var(--surface) !important;
+    background-color: var(--surface) !important;
+  }
+
+  .diagram-svg {
+    display: block;
+    width: 100%;
+    max-width: none;
+    color: var(--accent-cyan);
+  }
+
+  .diagram-canvas {
+    fill: rgb(10 13 19 / 0.76);
+    stroke: var(--border);
+  }
+
+  .diagram-node rect {
+    fill: var(--surface-elevated);
+    stroke: var(--border-strong);
+    stroke-width: 1.5;
+  }
+
+  .diagram-node-blue rect {
+    stroke: rgb(59 130 246 / 0.62);
+  }
+
+  .diagram-node-cyan rect {
+    stroke: rgb(67 217 255 / 0.72);
+  }
+
+  .diagram-node-teal rect {
+    stroke: rgb(45 212 191 / 0.62);
+  }
+
+  .diagram-node-violet rect {
+    stroke: rgb(139 92 246 / 0.62);
+  }
+
+  .diagram-node-type,
+  .diagram-annotation {
+    fill: var(--muted-foreground);
+    font-family:
+      var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+
+  .diagram-node-label {
+    fill: var(--foreground);
+    font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+
+  .diagram-node-note {
+    fill: var(--accent-cyan);
+    font-family:
+      var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+      Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .diagram-connector {
+    fill: none;
+    stroke: rgb(116 128 150 / 0.85);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .diagram-connector-primary {
+    stroke: var(--accent-cyan);
+  }
+
+  .diagram-arrow {
+    fill: var(--accent-cyan);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

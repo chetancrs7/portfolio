@@ -4,6 +4,9 @@ import { ExternalLink, Info, LinkIcon, TriangleAlert } from "lucide-react";
 import type { MDXComponents } from "mdx/types";
 import type * as React from "react";
 
+import { HybridSentimentArchitecture } from "@/components/diagrams/custom/hybrid-sentiment-architecture";
+import { DiagramPanel } from "@/components/diagrams/diagram-panel";
+import { MermaidDiagram } from "@/components/diagrams/mermaid-diagram";
 import { CodeBlock, CodeFigure } from "@/components/mdx/code-block";
 import {
   ApiEndpoint,
@@ -76,6 +79,7 @@ export function usePortfolioMDXComponents(
     DataFlow,
     DatabaseTable,
     DatabaseTables,
+    DiagramPanel,
     EngineeringDecision,
     EngineeringDecisionList,
     ErrorAnalysis,
@@ -83,8 +87,10 @@ export function usePortfolioMDXComponents(
     FailureMode,
     FailureModeList,
     Figure,
+    HybridSentimentArchitecture,
     Limitations,
     LimitationList,
+    MermaidDiagram,
     Tradeoff,
     TradeoffComparison,
     WideContent,
