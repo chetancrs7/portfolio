@@ -13,6 +13,9 @@ import { AmbientGlow } from "@/components/design/ambient-glow";
 import { FlagshipBorderBeam } from "@/components/design/flagship-border-beam";
 import { MotionNumber } from "@/components/design/motion-number";
 import { TechnicalGrid } from "@/components/design/technical-grid";
+import { HybridSentimentArchitecture } from "@/components/diagrams/custom/hybrid-sentiment-architecture";
+import { DiagramPanel } from "@/components/diagrams/diagram-panel";
+import { MermaidDiagram } from "@/components/diagrams/mermaid-diagram";
 import CodeShowcase from "@/components/mdx/code-showcase.mdx";
 import { TechnicalVisual } from "@/components/sections/home/technical-visual";
 import { Metric } from "@/components/shared/metric";
@@ -259,6 +262,76 @@ export default function DesignSystemPage() {
               <Metric label="Eval score" value="99.2" />
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section className="container-page section-space">
+        <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="type-eyebrow text-accent-cyan">Diagrams</p>
+            <h2 className="type-h2 mt-3">Technical diagrams</h2>
+          </div>
+          <p className="type-mono text-muted-foreground max-w-sm">
+            Mermaid for authored flows and custom SVG for flagship architecture
+            visuals.
+          </p>
+        </div>
+
+        <div className="space-y-8">
+          <DiagramPanel
+            title="Mermaid Architecture"
+            description="A dark-themed flowchart rendered only on the client."
+            caption="Diagram surfaces scroll horizontally on narrow screens while preserving readable node spacing."
+            expandable
+            wide
+          >
+            <MermaidDiagram
+              accessibleLabel="Architecture diagram showing an API writing to a database and publishing work to a queue consumed by workers."
+              chart={`flowchart LR
+  Client[Client] --> API[API Boundary]
+  API --> DB[(Primary Store)]
+  API --> Queue[Event Queue]
+  Queue --> Worker[Worker Pool]
+  Worker --> Provider[External Provider]
+  Worker --> Metrics[Metrics + Logs]`}
+            />
+          </DiagramPanel>
+
+          <DiagramPanel
+            title="Mermaid Sequence"
+            description="Sequence diagrams share the same panel, overflow, theming, and expand behavior."
+            expandable
+            wide
+          >
+            <MermaidDiagram
+              accessibleLabel="Sequence diagram showing an API publishing a job, a worker processing it, and storage recording completion."
+              chart={`sequenceDiagram
+  participant Client
+  participant API
+  participant Queue
+  participant Worker
+  participant Store
+
+  Client->>API: Create request
+  API->>Store: Persist intent
+  API->>Queue: Publish job
+  Queue->>Worker: Deliver job
+  Worker->>Store: Record result
+  Worker-->>API: Emit completion signal`}
+            />
+          </DiagramPanel>
+
+          <DiagramPanel
+            title="Custom SVG Architecture"
+            description="A hand-authored React SVG can carry portfolio-specific visual structure when Mermaid would be too generic."
+            caption="The hybrid sentiment diagram is reusable in MDX and keeps accessible title and description text inside the SVG."
+            expandable
+            wide
+          >
+            <HybridSentimentArchitecture />
+          </DiagramPanel>
         </div>
       </section>
 
