@@ -23,7 +23,7 @@ export function StatusBadge({
         <span
           aria-hidden="true"
           className={cn(
-            "bg-accent-cyan size-1.5 rounded-full shadow-[0_0_12px_var(--accent-cyan)]",
+            "bg-accent-cyan motion-subtle-pulse size-1.5 rounded-full shadow-[0_0_12px_var(--accent-cyan)]",
             dotClassName,
           )}
         />

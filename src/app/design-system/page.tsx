@@ -10,9 +10,13 @@ import {
 } from "lucide-react";
 
 import { AmbientGlow } from "@/components/design/ambient-glow";
+import { FlagshipBorderBeam } from "@/components/design/flagship-border-beam";
+import { MotionNumber } from "@/components/design/motion-number";
 import { TechnicalGrid } from "@/components/design/technical-grid";
+import { TechnicalVisual } from "@/components/sections/home/technical-visual";
 import { Metric } from "@/components/shared/metric";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -254,6 +258,89 @@ export default function DesignSystemPage() {
               <Metric label="Eval score" value="99.2" />
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section className="container-page section-space">
+        <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="type-eyebrow text-accent-cyan">Motion</p>
+            <h2 className="type-h2 mt-3">Measured emphasis</h2>
+          </div>
+          <p className="type-mono text-muted-foreground max-w-sm">
+            Short reveals, slow loops, and reduced-motion fallbacks.
+          </p>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Card className="relative isolate min-h-44 overflow-hidden">
+              <CardHeader>
+                <CardTitle>Gradient Accent</CardTitle>
+                <CardDescription>
+                  Hero-scale emphasis with a slow cyan-to-violet pass.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="type-h3">
+                  <AnimatedGradientText
+                    className="motion-gradient-text"
+                    colorFrom="var(--accent-cyan)"
+                    colorTo="var(--accent-violet)"
+                    speed={1.15}
+                  >
+                    Intelligent Software.
+                  </AnimatedGradientText>
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="relative isolate min-h-44 overflow-hidden">
+              <FlagshipBorderBeam />
+              <CardHeader>
+                <CardTitle>Flagship Border</CardTitle>
+                <CardDescription>
+                  One highlighted project gets the animated edge.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Badge variant="status">Featured surface</Badge>
+              </CardContent>
+            </Card>
+
+            <Card className="min-h-44">
+              <CardHeader>
+                <CardTitle>Number Ticker</CardTitle>
+                <CardDescription>
+                  Genuine metrics may count in once on view.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-foreground font-mono text-3xl font-semibold">
+                  <MotionNumber ariaLabel="3 core areas" value={3} />
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="relative min-h-44 overflow-hidden">
+              <TechnicalGrid className="opacity-35" />
+              <CardHeader className="relative">
+                <CardTitle>Status Pulse</CardTitle>
+                <CardDescription>
+                  Availability state keeps the only dot pulse.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="relative">
+                <StatusBadge>Available</StatusBadge>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="relative hidden min-h-[28rem] lg:block">
+            <TechnicalVisual />
+          </div>
         </div>
       </section>
 

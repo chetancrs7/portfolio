@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+import { FlagshipBorderBeam } from "@/components/design/flagship-border-beam";
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/sections/home/section-heading";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +60,7 @@ function FeaturedWorkCard({
           className="absolute right-0 bottom-0 h-40 w-64 bg-[radial-gradient(circle_at_bottom_right,rgb(67_217_255_/_0.14),transparent_70%)]"
         />
       ) : null}
+      {large ? <FlagshipBorderBeam /> : null}
       <CardHeader>
         <div className="mb-7 flex flex-wrap items-center gap-2">
           <Badge variant={large ? "status" : "outline"}>{item.type}</Badge>

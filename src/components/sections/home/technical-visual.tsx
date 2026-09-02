@@ -4,8 +4,12 @@ export function TechnicalVisual() {
       aria-hidden="true"
       className="relative mx-auto aspect-square w-full max-w-[30rem]"
     >
-      <div className="border-accent-blue/20 absolute inset-6 rounded-full border" />
-      <div className="border-accent-violet/20 absolute inset-16 rounded-full border" />
+      <div className="border-accent-blue/20 motion-orbit-slow absolute inset-6 rounded-full border">
+        <span className="bg-accent-cyan absolute top-10 left-2 size-1.5 rounded-full shadow-[0_0_14px_var(--accent-cyan)]" />
+      </div>
+      <div className="border-accent-violet/20 motion-orbit-slower absolute inset-16 rounded-full border">
+        <span className="bg-accent-violet absolute top-2 right-16 size-1.5 rounded-full shadow-[0_0_14px_var(--accent-violet)]" />
+      </div>
       <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgb(67_217_255_/_0.11),transparent_58%)]" />
 
       <svg
@@ -31,7 +35,7 @@ export function TechnicalVisual() {
         />
       </svg>
 
-      <div className="surface-subtle absolute top-1/2 left-1/2 grid size-32 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-2xl">
+      <div className="surface-subtle absolute top-1/2 left-1/2 grid size-32 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-2xl shadow-[0_0_44px_rgb(67_217_255_/_0.08)]">
         <div className="text-center">
           <p className="text-foreground font-mono text-2xl font-semibold">
             {"</>"}

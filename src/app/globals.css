@@ -55,6 +55,14 @@
   --container-wide: 88rem;
   --page-padding: clamp(1rem, 4vw, 2.5rem);
   --section-spacing: clamp(4rem, 8vw, 7rem);
+
+  --duration-fast: 160ms;
+  --duration-normal: 260ms;
+  --duration-reveal: 680ms;
+  --duration-orbit-slow: 42s;
+  --duration-orbit-slower: 58s;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
@@ -93,6 +101,50 @@
   --radius-lg: var(--radius-lg);
   --radius-xl: var(--radius-xl);
   --radius-4xl: var(--radius-pill);
+  --animate-gradient: gradient 18s linear infinite;
+  --animate-orbit-slow: orbit var(--duration-orbit-slow) linear infinite;
+  --animate-orbit-slower: orbit var(--duration-orbit-slower) linear infinite
+    reverse;
+  --animate-reveal-up: reveal-up var(--duration-reveal) var(--ease-emphasized)
+    both;
+  --animate-subtle-pulse: subtle-pulse 4.8s var(--ease-standard) infinite;
+
+  @keyframes gradient {
+    to {
+      background-position: var(--bg-size, 300%) 0;
+    }
+  }
+
+  @keyframes orbit {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes reveal-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes subtle-pulse {
+    0%,
+    100% {
+      opacity: 0.72;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 1;
+      transform: scale(1.45);
+    }
+  }
 }
 
 html {
@@ -253,6 +305,29 @@ body {
       ),
       var(--card);
   }
+
+  .motion-reveal {
+    animation: var(--animate-reveal-up);
+    animation-delay: var(--motion-delay, 0ms);
+  }
+
+  .motion-gradient-text {
+    animation-duration: 18s;
+  }
+
+  .motion-orbit-slow {
+    animation: var(--animate-orbit-slow);
+    transform-origin: center;
+  }
+
+  .motion-orbit-slower {
+    animation: var(--animate-orbit-slower);
+    transform-origin: center;
+  }
+
+  .motion-subtle-pulse {
+    animation: var(--animate-subtle-pulse);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -263,5 +338,17 @@ body {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .motion-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .motion-gradient-text,
+  .motion-orbit-slow,
+  .motion-orbit-slower,
+  .motion-subtle-pulse {
+    animation: none !important;
   }
 }

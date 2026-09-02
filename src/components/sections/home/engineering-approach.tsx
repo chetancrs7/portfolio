@@ -1,3 +1,5 @@
+import { type CSSProperties } from "react";
+
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/sections/home/section-heading";
 import { engineeringPrinciples } from "@/data/home";
@@ -14,10 +16,11 @@ export function EngineeringApproach() {
           />
 
           <div className="border-border border-y">
-            {engineeringPrinciples.map((principle) => (
+            {engineeringPrinciples.map((principle, index) => (
               <div
-                className="border-border grid gap-4 border-b py-6 last:border-b-0 sm:grid-cols-[5rem_1fr]"
+                className="border-border motion-reveal grid gap-4 border-b py-6 last:border-b-0 sm:grid-cols-[5rem_1fr]"
                 key={principle.index}
+                style={{ "--motion-delay": `${index * 70}ms` } as CSSProperties}
               >
                 <p className="type-mono text-accent-cyan">{principle.index}</p>
                 <div>
