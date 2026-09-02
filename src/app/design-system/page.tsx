@@ -13,6 +13,7 @@ import { AmbientGlow } from "@/components/design/ambient-glow";
 import { FlagshipBorderBeam } from "@/components/design/flagship-border-beam";
 import { MotionNumber } from "@/components/design/motion-number";
 import { TechnicalGrid } from "@/components/design/technical-grid";
+import CodeShowcase from "@/components/mdx/code-showcase.mdx";
 import { TechnicalVisual } from "@/components/sections/home/technical-visual";
 import { Metric } from "@/components/shared/metric";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -258,6 +259,24 @@ export default function DesignSystemPage() {
               <Metric label="Eval score" value="99.2" />
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      <Separator />
+
+      <section className="container-page section-space">
+        <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="type-eyebrow text-accent-cyan">Code</p>
+            <h2 className="type-h2 mt-3">Technical code blocks</h2>
+          </div>
+          <p className="type-mono text-muted-foreground max-w-sm">
+            Shiki-rendered MDX fences with filenames, language labels, line
+            emphasis, and copy controls.
+          </p>
+        </div>
+        <div className="max-w-4xl">
+          <CodeShowcase />
         </div>
       </section>
 

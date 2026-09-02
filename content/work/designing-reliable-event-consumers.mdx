@@ -6,7 +6,7 @@ Event consumers often look correct in a local happy path and then fail under ret
 
 A naive worker handles the message, writes a database row, calls another service, and acknowledges the event at the end. If the process exits between side effects and acknowledgment, the queue can redeliver work that has already partially happened.
 
-```ts
+```ts title="consumer.ts"
 await handleMessage(event);
 await queue.ack(event.id);
 ```
@@ -31,6 +31,14 @@ The consumer should make idempotency explicit. Store a stable event key, record 
 3. Apply database changes transactionally where possible.
 4. Acknowledge only after protected side effects complete.
 5. Send exhausted retries to a dead-letter queue with enough context to debug.
+
+```json title="event-envelope.json"
+{
+  "event_id": "evt_8129",
+  "type": "transaction.created",
+  "idempotency_key": "transaction:8129:created"
+}
+```
 
 ## Tradeoffs
 

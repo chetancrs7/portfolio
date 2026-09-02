@@ -71,7 +71,7 @@ The backend interface should make inference an explicit capability with input li
 
 A synchronous endpoint is acceptable for short interactive requests, but larger workloads should move to queued batch inference. That keeps the user-facing boundary stable even if feature extraction or model runtime changes.
 
-```python
+```python title="src/inference/predict.py" showLineNumbers {2-6}
 result = sentiment_service.predict(
     text=request.text,
     model_version="fusion-2026-08",
@@ -80,6 +80,13 @@ result = sentiment_service.predict(
 ```
 
 ## Database Design
+
+The inference request table exists so retries can be handled deterministically before model execution is repeated.
+
+```sql title="schema.sql" showLineNumbers {1-2}
+CREATE INDEX idx_inference_request_hash_version
+    ON inference_requests (request_hash, model_version);
+```
 
 <DatabaseTable
   name="inference_requests"
@@ -119,6 +126,17 @@ result = sentiment_service.predict(
 />
 
 ## API Design
+
+The API boundary is intentionally small. It exposes model behavior without leaking the internals of the fusion pipeline.
+
+```http title="sentiment.http"
+POST /v1/sentiment/inference HTTP/1.1
+Content-Type: application/json
+
+{
+  "text": "This service makes retries explicit."
+}
+```
 
 <ApiEndpoint
   method="POST"

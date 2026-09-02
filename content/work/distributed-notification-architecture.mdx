@@ -119,6 +119,15 @@ The first capacity model should size queues and workers around peak fan-out, pro
 
 The API owns validation and idempotent intent creation. Workers own provider translation, retry behavior, and attempt recording. The queue boundary prevents provider latency from blocking product services.
 
+```typescript title="src/workers/notification-worker.ts" showLineNumbers {2-6}
+async function handleNotification(event: NotificationEvent) {
+  await db.transaction(async (tx) => {
+    const intent = await intents.markProcessing(tx, event.idempotencyKey);
+    await outbox.enqueue(tx, "notification.delivery", intent);
+  });
+}
+```
+
 ## Failure Scenarios
 
 <FailureMode
@@ -138,6 +147,14 @@ The API owns validation and idempotent intent creation. Workers own provider tra
 ## Scaling Strategy
 
 Scale horizontally at the worker layer first, then split queues by channel or priority when one delivery mode starts starving another. Provider rate limits remain the real ceiling.
+
+```yaml title="worker-scale.yml"
+workers:
+  notification-email:
+    minReplicas: 2
+    maxReplicas: 12
+    scaleOn: queue_depth
+```
 
 ## Observability
 
