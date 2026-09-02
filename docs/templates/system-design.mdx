@@ -1,0 +1,97 @@
+## Problem
+
+Describe the architecture problem.
+
+<Callout type="warning">
+  This is a design study. Label all scale numbers as ASSUMPTION, DESIGN TARGET,
+  or ESTIMATE.
+</Callout>
+
+## Functional Requirements
+
+<ConstraintList items={["Requirement one.", "Requirement two."]} />
+
+## Non-Functional Requirements
+
+<ConstraintList items={["Reliability requirement.", "Latency requirement."]} />
+
+## Scale Assumptions
+
+ASSUMPTION: Replace with the stated scale assumption.
+
+DESIGN TARGET: Replace with the intended target.
+
+ESTIMATE: Replace with an estimate and explain why it is not measured production data.
+
+## Capacity Estimates
+
+Show estimates only when the assumptions are clear.
+
+## API Design
+
+<ApiEndpoint
+  method="POST"
+  path="/v1/example"
+  description="Describe the endpoint."
+/>
+
+## Data Model
+
+<DatabaseTable name="example" columns={["id", "status", "created_at"]} />
+
+## High-Level Architecture
+
+<ArchitecturePanel
+  title="High-level architecture"
+  nodes={["Service", "Queue", "Worker", "Provider"]}
+/>
+
+## Component Deep Dives
+
+Explain the most important components and their ownership.
+
+## Failure Scenarios
+
+<FailureMode
+  title="Failure scenario"
+  failure="What breaks?"
+  behavior="How does the system behave?"
+  protection="What limits the impact?"
+/>
+
+## Scaling Strategy
+
+Explain what scales first and what bottlenecks remain.
+
+## Observability
+
+List useful operational signals.
+
+## Security
+
+Describe trust boundaries and data handling.
+
+## Tradeoffs
+
+<TradeoffComparison
+  options={[
+    {
+      label: "Option A",
+      status: "Selected",
+      notes: ["Why it fits.", "What it costs."],
+    },
+    {
+      label: "Option B",
+      status: "Rejected for this case",
+      notes: ["Why it is viable.", "Why it is weaker here."],
+    },
+  ]}
+/>
+
+## Alternative Designs
+
+Describe credible alternatives without framing them as universally bad.
+
+## Limitations
+
+<Limitations items={["Design-study limitation."]} />

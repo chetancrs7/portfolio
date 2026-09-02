@@ -1,0 +1,70 @@
+## Research Problem
+
+State the research question.
+
+## Hypothesis
+
+Describe what you expect to happen and why.
+
+## Dataset
+
+Describe dataset source, split, labels, limitations, and imbalance.
+
+## Baselines
+
+<BenchmarkTable
+  columns={["Model", "Accuracy", "Macro F1"]}
+  rows={[{ Model: "Baseline", Accuracy: "0.000", "Macro F1": "0.000" }]}
+/>
+
+## Methodology
+
+Describe the experimental method.
+
+## Model Architecture
+
+<ArchitecturePanel
+  title="Model architecture"
+  nodes={["Input", "Features", "Model", "Prediction"]}
+/>
+
+## Experiment Setup
+
+Document training/evaluation setup without turning this into a raw notebook dump.
+
+## Evaluation Metrics
+
+Label every metric precisely: validation, test, oracle, estimate, or target.
+
+## Results
+
+Use measured values only.
+
+## Ablation Study
+
+Remove if no ablation exists.
+
+## Error Analysis
+
+<ErrorAnalysis
+  type="Error slice"
+  observation="What happened?"
+  likelyCause="Why might it happen?"
+  possibleImprovement="What would you try next?"
+/>
+
+## Computational Performance
+
+Document inference or training cost only if known.
+
+## Limitations
+
+<Limitations items={["Research limitation."]} />
+
+## Conclusion
+
+Summarize what the result means.
+
+## Next Experiments
+
+List concrete follow-up experiments.

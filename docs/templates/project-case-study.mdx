@@ -1,0 +1,101 @@
+## Overview
+
+Briefly describe what the system does, why it exists, the key outcome, and your role.
+
+## Problem
+
+Explain the technical problem and why a simpler approach was not enough.
+
+## Constraints
+
+<ConstraintList
+  items={["Constraint one.", "Constraint two.", "Constraint three."]}
+/>
+
+## Architecture
+
+<ArchitecturePanel
+  title="High-level architecture"
+  description="Describe the main system boundary."
+  nodes={["Client", "API", "Database", "Worker"]}
+/>
+
+## Data Flow
+
+<DataFlow steps={["Request", "Validate", "Persist", "Process", "Respond"]} />
+
+## Backend Design
+
+Describe service boundaries, request handling, background jobs, and important failure behavior.
+
+## Database Design
+
+<DatabaseTable
+  name="example_entities"
+  columns={["id", "owner_id", "status", "created_at"]}
+  indexes={[
+    {
+      columns: "(owner_id, created_at)",
+      reason: "Explain the query this index supports.",
+    },
+  ]}
+/>
+
+## API Design
+
+<ApiEndpoint
+  method="POST"
+  path="/v1/example"
+  description="Describe the endpoint contract."
+/>
+
+## AI / ML Architecture
+
+Remove this section if the project does not include AI/ML.
+
+## Evaluation
+
+Use only known metrics. Label test, validation, oracle, estimate, or design target clearly.
+
+## Performance
+
+Document measured performance or explicitly state that benchmarks are not available yet.
+
+## Reliability
+
+<FailureMode
+  title="Failure Title"
+  failure="What breaks?"
+  behavior="What does the system do?"
+  protection="What keeps the failure bounded?"
+/>
+
+## Security
+
+Document trust boundaries, validation, secrets, data minimization, and authorization.
+
+## Deployment
+
+Describe deployment boundaries and operational assumptions.
+
+## Observability
+
+List logs, metrics, traces, and alerts that matter for this system.
+
+## Engineering Decisions
+
+<EngineeringDecision
+  id="ADR-001"
+  title="Decision title"
+  context="Why this decision exists."
+  decision="What was selected."
+  tradeoffs={["Tradeoff one.", "Tradeoff two."]}
+/>
+
+## Limitations
+
+<Limitations items={["Scope limitation.", "Measurement limitation."]} />
+
+## What I Would Change
+
+Write a concrete engineering reflection.
