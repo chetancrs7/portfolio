@@ -1,20 +1,32 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { Metadata } from "next";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { CaseStudyContent } from "@/components/work/case-study/case-study-content";
+import { CaseStudyHeader } from "@/components/work/case-study/case-study-header";
+import { CaseStudyNavigation } from "@/components/work/case-study/case-study-navigation";
+import { CaseStudyToc } from "@/components/work/case-study/case-study-toc";
+import { MetricStrip } from "@/components/work/case-study/metric-strip";
+import { TechnicalSnapshot } from "@/components/work/case-study/technical-snapshot";
+import { siteConfig } from "@/config/site";
 import {
   getPublishedWork,
   getWorkBySlug,
-  technicalAreaLabels,
-  workStatusLabels,
   workTypeLabels,
+  type WorkItem,
 } from "@/content/work";
+import {
+  getAdjacentPublishedWork,
+  getCaseStudyDetail,
+  getCaseStudyTemplate,
+  getRenderableCaseStudySections,
+} from "@/content/work/details";
 
-type WorkDetailPlaceholderProps = {
+type WorkDetailPageProps = {
   params: Promise<{
     slug: string;
   }>;
@@ -28,7 +40,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({
   params,
-}: WorkDetailPlaceholderProps): Promise<Metadata> {
+}: WorkDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const item = getWorkBySlug(slug);
 
@@ -39,14 +51,12 @@ export async function generateMetadata({
   }
 
   return {
-    title: item.title,
+    title: `${item.title} | ${siteConfig.author.name}`,
     description: item.summary,
   };
 }
 
-export default async function WorkDetailPlaceholder({
-  params,
-}: WorkDetailPlaceholderProps) {
+export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
   const { slug } = await params;
   const item = getWorkBySlug(slug);
 
@@ -54,52 +64,140 @@ export default async function WorkDetailPlaceholder({
     notFound();
   }
 
+  const detail = getCaseStudyDetail(item.slug);
+  const adjacentWork = getAdjacentPublishedWork(item.slug);
+  const sections = detail ? getRenderableCaseStudySections(item, detail) : [];
+
   return (
     <div className="technical-background min-h-screen">
-      <PageContainer className="py-16 sm:py-20 lg:py-24">
-        <Link
-          className={buttonVariants({
-            className: "mb-10",
-            variant: "secondary",
-          })}
-          href="/work"
-        >
-          <ArrowLeft data-icon="inline-start" />
-          Work
-        </Link>
+      <PageContainer className="pb-16" variant="wide">
+        <CaseStudyHeader item={item} />
 
-        <div className="surface-subtle rounded-2xl p-6 sm:p-8 lg:p-10">
-          <div className="mb-7 flex flex-wrap gap-2">
-            <Badge variant="status">{workTypeLabels[item.type]}</Badge>
-            <Badge variant="outline">{workStatusLabels[item.status]}</Badge>
-            {item.areas.map((area) => (
-              <Badge key={area} variant="outline">
-                {technicalAreaLabels[area]}
-              </Badge>
-            ))}
-          </div>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+          <main className="min-w-0">
+            <div className="mx-auto max-w-3xl">
+              <CaseStudyDisclosure item={item} />
+              <MetricStrip metrics={item.metrics} />
+              {sections.length > 0 ? (
+                <div className="mt-8 lg:hidden">
+                  <CaseStudyToc items={sections} />
+                </div>
+              ) : null}
+            </div>
 
-          <h1 className="type-h1 max-w-4xl text-balance">{item.title}</h1>
-          <p className="type-body-lg text-muted-foreground mt-6 max-w-3xl">
-            {item.summary}
-          </p>
+            <article className="mx-auto mt-10 max-w-3xl">
+              {detail ? (
+                <CaseStudyContent sections={sections} />
+              ) : (
+                <CaseStudyFallback item={item} />
+              )}
+              <CaseStudyNavigation
+                next={adjacentWork.next}
+                previous={adjacentWork.previous}
+              />
+            </article>
+          </main>
 
-          {item.type === "system-design" && item.systemDesign?.designOnly ? (
-            <p className="type-mono text-accent-cyan mt-8 uppercase">
-              Design study - not a production deployment
-            </p>
-          ) : null}
-
-          <div className="border-border mt-10 border-t pt-6">
-            <p className="type-h4">Detailed case study coming next.</p>
-            <p className="type-body text-muted-foreground mt-3 max-w-2xl">
-              This route exists so Work links are stable while the full case
-              study engine, MDX rendering, diagrams, and technical layouts are
-              deferred to the next development phase.
-            </p>
+          <div className="hidden space-y-4 lg:sticky lg:top-24 lg:block">
+            <TechnicalSnapshot item={item} role={detail?.role} />
+            <CaseStudyToc
+              items={
+                sections.length > 0
+                  ? sections
+                  : getCaseStudyTemplate(item.type).slice(0, 6)
+              }
+            />
           </div>
         </div>
       </PageContainer>
     </div>
+  );
+}
+
+function CaseStudyDisclosure({ item }: { item: WorkItem }) {
+  if (item.type === "system-design" || item.status === "design-study") {
+    return (
+      <Disclosure
+        body="Architecture exercise based on stated scale assumptions. This is not presented as a production deployment."
+        label="Design Study"
+      />
+    );
+  }
+
+  if (item.type === "research") {
+    return (
+      <Disclosure
+        body="Research / experiment work. Results describe the stated evaluation context, not a production software claim."
+        label="Research / Experiment"
+      />
+    );
+  }
+
+  return null;
+}
+
+function Disclosure({ body, label }: { body: string; label: string }) {
+  return (
+    <div className="border-accent-cyan/20 bg-accent-cyan/6 mb-8 rounded-xl border p-5">
+      <p className="type-mono text-accent-cyan uppercase">{label}</p>
+      <p className="text-muted-foreground mt-2 text-sm leading-6">{body}</p>
+    </div>
+  );
+}
+
+function CaseStudyFallback({ item }: { item: WorkItem }) {
+  return (
+    <section className="border-border bg-card/55 rounded-xl border p-6 sm:p-8">
+      <Badge variant="status">Case Study In Progress</Badge>
+      <h2 className="type-h3 mt-5 text-balance">
+        Engineering breakdown is being documented.
+      </h2>
+      <p className="type-body text-muted-foreground mt-4">
+        The project metadata is available, but the full technical case study is
+        still being prepared for this Work type. The page stays stable so links,
+        navigation, and future MDX content can land without broken routes.
+      </p>
+      <div className="mt-6 flex flex-wrap gap-3">
+        {item.repository ? (
+          <Link
+            className={buttonVariants({ size: "sm", variant: "outline" })}
+            href={item.repository}
+            rel="noreferrer"
+            target="_blank"
+          >
+            View Source
+            <ExternalLink data-icon="inline-end" />
+          </Link>
+        ) : null}
+        {item.demo ? (
+          <Link
+            className={buttonVariants({ size: "sm", variant: "outline" })}
+            href={item.demo}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Live Demo
+            <ExternalLink data-icon="inline-end" />
+          </Link>
+        ) : null}
+        <Link
+          className={buttonVariants({ size: "sm", variant: "secondary" })}
+          href="/work"
+        >
+          <ArrowLeft data-icon="inline-start" />
+          Back to Work
+        </Link>
+      </div>
+      <div className="border-border mt-8 border-t pt-5">
+        <p className="type-mono text-muted-foreground uppercase">
+          Planned {workTypeLabels[item.type]} Structure
+        </p>
+        <ul className="text-muted-foreground mt-4 grid gap-2 text-sm sm:grid-cols-2">
+          {getCaseStudyTemplate(item.type).map((section) => (
+            <li key={section.id}>{section.label}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
