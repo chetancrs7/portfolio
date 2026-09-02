@@ -28,4 +28,16 @@ Buttons are compact, rounded, and precise. Primary buttons use an off-white fill
 
 ## Motion
 
-Motion is limited to CSS transitions for color, border, background, opacity, and very small active-state movement. Magic UI, Motion, parallax, cursor-following effects, and constant background animation are deferred.
+Motion is a restrained enhancement layer over the static portfolio system. Magic UI is used only for installed components that appear in the product: animated gradient text, number ticker, and a single border beam treatment.
+
+Motion rules:
+
+- Hero content uses a short reveal-up sequence with staggered delays.
+- The homepage headline uses one slow cyan-to-violet animated gradient accent.
+- Availability status uses a subtle dot pulse.
+- The technical hero diagram uses slow orbit markers on desktop.
+- The first genuine numeric metric may count in once when it enters view.
+- Only the flagship work card receives the animated border beam.
+- `prefers-reduced-motion: reduce` disables CSS loops, reveals, pulses, and Motion-powered client wrappers.
+
+Deferred effects: animated beams between sections, marquees, particles, custom cursors, parallax, and broad scroll-triggered reveals.
