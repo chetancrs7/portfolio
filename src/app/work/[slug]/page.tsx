@@ -6,7 +6,6 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { CaseStudyContent } from "@/components/work/case-study/case-study-content";
 import { CaseStudyHeader } from "@/components/work/case-study/case-study-header";
 import { CaseStudyNavigation } from "@/components/work/case-study/case-study-navigation";
 import { CaseStudyToc } from "@/components/work/case-study/case-study-toc";
@@ -16,15 +15,11 @@ import { siteConfig } from "@/config/site";
 import {
   getPublishedWork,
   getWorkBySlug,
+  getCaseStudyTemplate,
   workTypeLabels,
   type WorkItem,
 } from "@/content/work";
-import {
-  getAdjacentPublishedWork,
-  getCaseStudyDetail,
-  getCaseStudyTemplate,
-  getRenderableCaseStudySections,
-} from "@/content/work/details";
+import { getWorkContent } from "@/content/work/mdx";
 
 type WorkDetailPageProps = {
   params: Promise<{
@@ -64,9 +59,10 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
     notFound();
   }
 
-  const detail = getCaseStudyDetail(item.slug);
+  const content = await getWorkContent(item);
   const adjacentWork = getAdjacentPublishedWork(item.slug);
-  const sections = detail ? getRenderableCaseStudySections(item, detail) : [];
+  const tocItems = content?.headings ?? [];
+  const Content = content?.Content;
 
   return (
     <div className="technical-background min-h-screen">
@@ -78,19 +74,15 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
             <div className="mx-auto max-w-3xl">
               <CaseStudyDisclosure item={item} />
               <MetricStrip metrics={item.metrics} />
-              {sections.length > 0 ? (
+              {tocItems.length > 0 ? (
                 <div className="mt-8 lg:hidden">
-                  <CaseStudyToc items={sections} />
+                  <CaseStudyToc items={tocItems} />
                 </div>
               ) : null}
             </div>
 
             <article className="mx-auto mt-10 max-w-3xl">
-              {detail ? (
-                <CaseStudyContent sections={sections} />
-              ) : (
-                <CaseStudyFallback item={item} />
-              )}
+              {Content ? <Content /> : <CaseStudyFallback item={item} />}
               <CaseStudyNavigation
                 next={adjacentWork.next}
                 previous={adjacentWork.previous}
@@ -99,11 +91,11 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
           </main>
 
           <div className="hidden space-y-4 lg:sticky lg:top-24 lg:block">
-            <TechnicalSnapshot item={item} role={detail?.role} />
+            <TechnicalSnapshot item={item} />
             <CaseStudyToc
               items={
-                sections.length > 0
-                  ? sections
+                tocItems.length > 0
+                  ? tocItems
                   : getCaseStudyTemplate(item.type).slice(0, 6)
               }
             />
@@ -112,6 +104,19 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
       </PageContainer>
     </div>
   );
+}
+
+function getAdjacentPublishedWork(slug: string) {
+  const publishedWork = getPublishedWork();
+  const index = publishedWork.findIndex((item) => item.slug === slug);
+
+  return {
+    next: index > 0 ? publishedWork[index - 1] : null,
+    previous:
+      index >= 0 && index < publishedWork.length - 1
+        ? publishedWork[index + 1]
+        : null,
+  };
 }
 
 function CaseStudyDisclosure({ item }: { item: WorkItem }) {

@@ -8,7 +8,7 @@ import {
   type ErrorAnalysisData,
   type FailureModeData,
   type TradeoffOptionData,
-} from "@/content/work/details";
+} from "@/components/work/case-study/types";
 import { cn } from "@/lib/utils";
 import type * as React from "react";
 
@@ -34,17 +34,39 @@ export function ConstraintList({ items }: { items: string[] }) {
   );
 }
 
-export function ArchitecturePanel({ panel }: { panel: ArchitecturePanelData }) {
-  const nodes = panel.nodes ?? [];
+type ArchitecturePanelProps = Partial<ArchitecturePanelData> & {
+  children?: React.ReactNode;
+  panel?: ArchitecturePanelData;
+};
+
+export function ArchitecturePanel({
+  caption,
+  children,
+  description,
+  nodes: directNodes,
+  panel,
+  title,
+}: ArchitecturePanelProps) {
+  const panelData = panel ?? {
+    caption,
+    description,
+    nodes: directNodes,
+    title: title ?? "Architecture",
+  };
+  const nodes = panelData.nodes ?? [];
 
   return (
     <WideContent>
       <figure className="border-border bg-card/45 min-w-[42rem] rounded-xl border p-5">
         <figcaption>
-          <p className="type-mono text-accent-cyan uppercase">{panel.title}</p>
-          <p className="text-muted-foreground mt-2 max-w-3xl text-sm leading-6">
-            {panel.description}
+          <p className="type-mono text-accent-cyan uppercase">
+            {panelData.title}
           </p>
+          {panelData.description ? (
+            <p className="text-muted-foreground mt-2 max-w-3xl text-sm leading-6">
+              {panelData.description}
+            </p>
+          ) : null}
         </figcaption>
         {nodes.length > 0 ? (
           <div aria-hidden="true" className="mt-6 flex items-center gap-3">
@@ -63,9 +85,10 @@ export function ArchitecturePanel({ panel }: { panel: ArchitecturePanelData }) {
             ))}
           </div>
         ) : null}
-        {panel.caption ? (
+        {children ? <div className="mt-6">{children}</div> : null}
+        {panelData.caption ? (
           <p className="type-body-sm text-muted-foreground mt-5">
-            {panel.caption}
+            {panelData.caption}
           </p>
         ) : null}
       </figure>
@@ -73,17 +96,30 @@ export function ArchitecturePanel({ panel }: { panel: ArchitecturePanelData }) {
   );
 }
 
-export function DataFlow({ flow }: { flow: DataFlowData }) {
+type DataFlowProps = Partial<DataFlowData> & {
+  flow?: DataFlowData;
+};
+
+export function DataFlow({ caption, flow, steps }: DataFlowProps) {
+  const flowData = flow ?? {
+    caption,
+    steps: steps ?? [],
+  };
+
+  if (flowData.steps.length === 0) {
+    return null;
+  }
+
   return (
     <WideContent>
       <figure className="min-w-[38rem]">
         <div className="border-border bg-card/45 flex items-center gap-3 rounded-xl border p-4">
-          {flow.steps.map((step, index) => (
+          {flowData.steps.map((step, index) => (
             <div className="flex min-w-0 flex-1 items-center gap-3" key={step}>
               <div className="border-accent-cyan/25 bg-accent-cyan/8 min-w-24 flex-1 rounded-lg border px-3 py-3 text-center">
                 <span className="type-mono text-foreground">{step}</span>
               </div>
-              {index < flow.steps.length - 1 ? (
+              {index < flowData.steps.length - 1 ? (
                 <span className="text-muted-foreground" aria-hidden="true">
                   /
                 </span>
@@ -91,14 +127,18 @@ export function DataFlow({ flow }: { flow: DataFlowData }) {
             </div>
           ))}
         </div>
-        {flow.caption ? (
+        {flowData.caption ? (
           <figcaption className="type-body-sm text-muted-foreground mt-3">
-            {flow.caption}
+            {flowData.caption}
           </figcaption>
         ) : null}
       </figure>
     </WideContent>
   );
+}
+
+export function ApiEndpoint(endpoint: ApiEndpointData) {
+  return <ApiEndpointList endpoints={[endpoint]} />;
 }
 
 export function ApiEndpointList({
@@ -133,6 +173,10 @@ export function ApiEndpointList({
       ))}
     </div>
   );
+}
+
+export function DatabaseTable(table: DatabaseTableData) {
+  return <DatabaseTables tables={[table]} />;
 }
 
 export function DatabaseTables({ tables }: { tables: DatabaseTableData[] }) {
@@ -174,6 +218,10 @@ export function DatabaseTables({ tables }: { tables: DatabaseTableData[] }) {
   );
 }
 
+export function EngineeringDecision(decision: EngineeringDecisionData) {
+  return <EngineeringDecisionList decisions={[decision]} />;
+}
+
 export function EngineeringDecisionList({
   decisions,
 }: {
@@ -191,7 +239,9 @@ export function EngineeringDecisionList({
             {decision.title}
           </h3>
           <dl className="mt-5 grid gap-4">
-            <DecisionRow label="Context" value={decision.context} />
+            {decision.context ? (
+              <DecisionRow label="Context" value={decision.context} />
+            ) : null}
             {decision.options && decision.options.length > 0 ? (
               <div>
                 <dt className="type-mono text-muted-foreground uppercase">
@@ -224,6 +274,10 @@ export function EngineeringDecisionList({
   );
 }
 
+export function Tradeoff(option: TradeoffOptionData) {
+  return <TradeoffComparison options={[option]} />;
+}
+
 export function TradeoffComparison({
   options,
 }: {
@@ -251,6 +305,10 @@ export function TradeoffComparison({
   );
 }
 
+export function FailureMode(mode: FailureModeData) {
+  return <FailureModeList modes={[mode]} />;
+}
+
 export function FailureModeList({ modes }: { modes: FailureModeData[] }) {
   return (
     <div className="space-y-4">
@@ -271,20 +329,40 @@ export function FailureModeList({ modes }: { modes: FailureModeData[] }) {
   );
 }
 
-export function BenchmarkTable({ table }: { table: BenchmarkTableData }) {
-  const firstColumn = table.columns[0];
+type BenchmarkTableProps = Partial<BenchmarkTableData> & {
+  table?: BenchmarkTableData;
+};
+
+export function BenchmarkTable({
+  caption,
+  columns,
+  highlightRow,
+  rows,
+  table,
+}: BenchmarkTableProps) {
+  const tableData = table ?? {
+    caption,
+    columns: columns ?? [],
+    highlightRow,
+    rows: rows ?? [],
+  };
+  const firstColumn = tableData.columns[0];
+
+  if (!firstColumn || tableData.rows.length === 0) {
+    return null;
+  }
 
   return (
     <WideContent>
       <table className="border-border bg-card/45 min-w-[38rem] overflow-hidden rounded-xl border text-left text-sm">
-        {table.caption ? (
+        {tableData.caption ? (
           <caption className="type-body-sm text-muted-foreground caption-bottom pt-3 text-left">
-            {table.caption}
+            {tableData.caption}
           </caption>
         ) : null}
         <thead>
           <tr className="border-border border-b">
-            {table.columns.map((column) => (
+            {tableData.columns.map((column) => (
               <th
                 className="type-mono text-muted-foreground px-4 py-3 uppercase"
                 key={column}
@@ -296,9 +374,10 @@ export function BenchmarkTable({ table }: { table: BenchmarkTableData }) {
           </tr>
         </thead>
         <tbody>
-          {table.rows.map((row, index) => {
+          {tableData.rows.map((row, index) => {
             const isHighlighted =
-              table.highlightRow && row[firstColumn] === table.highlightRow;
+              tableData.highlightRow &&
+              row[firstColumn] === tableData.highlightRow;
 
             return (
               <tr
@@ -308,7 +387,7 @@ export function BenchmarkTable({ table }: { table: BenchmarkTableData }) {
                 )}
                 key={`${row[firstColumn]}-${index}`}
               >
-                {table.columns.map((column) => (
+                {tableData.columns.map((column) => (
                   <td
                     className={cn(
                       "px-4 py-3 align-top",
@@ -328,6 +407,10 @@ export function BenchmarkTable({ table }: { table: BenchmarkTableData }) {
       </table>
     </WideContent>
   );
+}
+
+export function ErrorAnalysis(item: ErrorAnalysisData) {
+  return <ErrorAnalysisList items={[item]} />;
 }
 
 export function ErrorAnalysisList({ items }: { items: ErrorAnalysisData[] }) {
@@ -351,6 +434,10 @@ export function ErrorAnalysisList({ items }: { items: ErrorAnalysisData[] }) {
       ))}
     </div>
   );
+}
+
+export function Limitations({ items }: { items: string[] }) {
+  return <LimitationList items={items} />;
 }
 
 export function LimitationList({ items }: { items: string[] }) {

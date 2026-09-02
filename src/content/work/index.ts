@@ -13,6 +13,7 @@ export {
   workTypeLabels,
 } from "./labels";
 export { workAreaFilters, workTypeFilters } from "./filters";
+export { caseStudyTemplates, getCaseStudyTemplate } from "./templates";
 export {
   technicalAreaSchema,
   workItemSchema,
