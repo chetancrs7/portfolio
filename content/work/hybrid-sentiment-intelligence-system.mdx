@@ -1,0 +1,247 @@
+## Overview
+
+This case study treats sentiment inference as a backend-ready AI system, not just a model score. The system combines a semantic expert with structural linguistic features, then records enough model behavior to make evaluation and future serving decisions inspectable.
+
+The project is useful because it separates three concerns: model quality, model confidence, and the service boundary that would eventually expose predictions to application code.
+
+<Callout type="result">
+  The fusion model reached test accuracy of `0.8741` with Macro F1 of `0.874`,
+  AUC of `0.947`, and ECE of `0.0065`.
+</Callout>
+
+## Problem
+
+Traditional sentiment systems tend to lean on either semantic representation or engineered structural signals. Transformer-style semantic features capture context, but can be overconfident on short or sarcastic text. Structural features can preserve useful surface patterns, but are weaker when the meaning depends on context.
+
+The engineering problem is to combine both views while keeping the result interpretable enough to operate behind a backend API.
+
+## Constraints
+
+<ConstraintList
+  items={[
+    "ML inference should not block unrelated user-facing requests.",
+    "Evaluation should distinguish accuracy, calibration, and ranking quality.",
+    "The model boundary should expose confidence and model version information.",
+    "Retries should be safe if inference is moved to asynchronous processing.",
+  ]}
+/>
+
+## Architecture
+
+<ArchitecturePanel
+  title="Hybrid inference pipeline"
+  description="Semantic and structural experts operate independently before a learned fusion gate combines their outputs."
+  nodes={[
+    "Tweet Text",
+    "DeBERTa Embeddings",
+    "KAN Expert",
+    "XGBoost Expert",
+    "Fusion Gate",
+    "Prediction",
+  ]}
+  caption="Temporary static architecture view. Mermaid diagrams are intentionally deferred."
+/>
+
+The semantic path uses DeBERTa representations and a KAN semantic expert. The structural path uses linguistic features and an XGBoost expert. The fusion stage learns a gate alpha so the final prediction can represent how strongly the semantic side contributed.
+
+<Figure
+  src="/images/work/hybrid-sentiment/fusion-overview.svg"
+  alt="Block diagram showing text flowing through semantic and structural experts into a fusion gate."
+  caption="Local technical figure used to verify MDX figure rendering and asset organization."
+/>
+
+## Data Flow
+
+<DataFlow
+  steps={[
+    "Request",
+    "Validation",
+    "Preprocessing",
+    "Semantic Features",
+    "Structural Features",
+    "Fusion",
+    "Response",
+  ]}
+  caption="The serving path keeps input validation separate from model execution so batch inference can move behind a worker later."
+/>
+
+## Backend Design
+
+The backend interface should make inference an explicit capability with input limits, model versioning, request identifiers, and structured outputs. Application code should not depend on the internals of the model architecture.
+
+A synchronous endpoint is acceptable for short interactive requests, but larger workloads should move to queued batch inference. That keeps the user-facing boundary stable even if feature extraction or model runtime changes.
+
+```python
+result = sentiment_service.predict(
+    text=request.text,
+    model_version="fusion-2026-08",
+    request_id=request.idempotency_key,
+)
+```
+
+## Database Design
+
+<DatabaseTable
+  name="inference_requests"
+  columns={[
+    "id",
+    "request_hash",
+    "model_version",
+    "status",
+    "created_at",
+    "completed_at",
+  ]}
+  indexes={[
+    {
+      columns: "(request_hash, model_version)",
+      reason:
+        "Allows repeated requests to resolve to the same inference record without tying clients to storage internals.",
+    },
+  ]}
+/>
+
+<DatabaseTable
+  name="sentiment_predictions"
+  columns={[
+    "id",
+    "request_id",
+    "label",
+    "confidence",
+    "gate_alpha",
+    "created_at",
+  ]}
+  indexes={[
+    {
+      columns: "(request_id)",
+      reason: "Keeps prediction retrieval attached to the request lifecycle.",
+    },
+  ]}
+/>
+
+## API Design
+
+<ApiEndpoint
+  method="POST"
+  path="/v1/sentiment/inference"
+  description="Validate input text and return a versioned sentiment prediction."
+/>
+
+<ApiEndpoint
+  method="GET"
+  path="/v1/sentiment/inference/{id}"
+  description="Retrieve an inference result by stable request identifier."
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/v1/sentiment/batches"
+  description="Create an asynchronous batch inference job for larger workloads."
+/>
+
+## AI / ML Architecture
+
+The model combines semantic representations with structural features. Mean gate alpha is tracked because it describes model behavior, not just score. A high gate alpha means the semantic expert carries most of the final signal.
+
+> The gate heavily favors the semantic KAN expert. Fusion improves only modestly over KAN despite a higher oracle ceiling, which suggests complementarity exists but is not fully exploited.
+
+## Evaluation
+
+<BenchmarkTable
+  columns={["Model", "Accuracy", "Macro F1", "Notes"]}
+  highlightRow="Fusion"
+  rows={[
+    {
+      Model: "XGBoost",
+      Accuracy: "0.743",
+      "Macro F1": "0.742",
+      Notes: "Structural baseline",
+    },
+    {
+      Model: "KAN",
+      Accuracy: "0.8724",
+      "Macro F1": "0.872",
+      Notes: "Semantic baseline",
+    },
+    {
+      Model: "Fusion",
+      Accuracy: "0.8741",
+      "Macro F1": "0.874",
+      Notes: "Hybrid gated model",
+    },
+  ]}
+  caption="Known project metrics from current portfolio context. No additional benchmark numbers are inferred."
+/>
+
+| Metric          |    Value | Meaning                                    |
+| --------------- | -------: | ------------------------------------------ |
+| Test Accuracy   | `0.8741` | Final fusion model classification accuracy |
+| AUC             |  `0.947` | Ranking quality across thresholds          |
+| ECE             | `0.0065` | Expected calibration error                 |
+| Mean Gate Alpha |  `0.924` | Average learned semantic contribution      |
+| Oracle Accuracy |  `0.923` | Upper-bound comparison from known context  |
+
+## Performance
+
+The current evidence is model-quality oriented. Service latency, throughput, and batch processing benchmarks should be measured only after the serving path is implemented behind a stable API boundary.
+
+## Reliability
+
+<FailureMode
+  title="Model Timeout"
+  failure="The inference worker exceeds the request budget for unusually long input."
+  behavior="The API returns a bounded error rather than leaving the caller waiting indefinitely."
+  protection="Request timeouts, max input lengths, and an asynchronous batch path protect user-facing flows."
+/>
+
+<FailureMode
+  title="Duplicate Request"
+  failure="A client retries after losing the response from a completed inference."
+  behavior="The same request hash and model version can resolve to the existing prediction."
+  protection="Idempotent request keys avoid duplicate database effects and make retries predictable."
+/>
+
+## Security
+
+The serving boundary should validate input size, reject malformed payloads, avoid logging raw sensitive text by default, and expose model metadata without leaking training artifacts.
+
+## Deployment
+
+The deployment design should separate the application API from the model runtime so CPU-bound or GPU-bound inference can scale independently when real traffic data justifies it.
+
+## Observability
+
+- Track request volume, latency buckets, timeout rate, and model version.
+- Record confidence and calibration-oriented aggregate metrics without storing unnecessary raw text.
+- Separate application failures from model-quality drift.
+
+## Engineering Decisions
+
+<EngineeringDecision
+  id="ADR-001"
+  title="Use a fusion boundary instead of choosing one model family"
+  context="Semantic and structural features carry different signals, and the project goal is to evaluate how they complement each other."
+  options={[
+    "Use only transformer embeddings",
+    "Use only structural features",
+    "Learn a fusion layer across both signals",
+  ]}
+  decision="Use a learned fusion mechanism and report quality metrics alongside gate behavior."
+  tradeoffs={[
+    "The hybrid design is more complex to explain and serve.",
+    "It creates a clearer evaluation story for feature contribution and calibration.",
+  ]}
+/>
+
+## Limitations
+
+<Limitations
+  items={[
+    "Production latency and throughput have not been measured yet.",
+    "The current results should be interpreted within the known evaluation setup, not generalized to every sentiment domain.",
+    "Calibration and error analysis need deeper slices before deployment claims would be credible.",
+  ]}
+/>
+
+## What I Would Change
+
+If redesigning this system today, I would separate embedding generation from synchronous request handling earlier and make model evaluation artifacts first-class outputs of the pipeline.

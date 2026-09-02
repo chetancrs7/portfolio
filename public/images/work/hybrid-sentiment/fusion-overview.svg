@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+  <title id="title">Hybrid sentiment fusion overview</title>
+  <desc id="desc">Text is routed through semantic and structural experts before a fusion gate emits a prediction.</desc>
+  <rect width="960" height="420" fill="#080b11"/>
+  <g fill="none" stroke="#263449" stroke-width="1">
+    <path d="M80 72h800M80 156h800M80 240h800M80 324h800"/>
+    <path d="M160 40v340M320 40v340M480 40v340M640 40v340M800 40v340"/>
+  </g>
+  <g font-family="Geist Mono, Consolas, monospace" font-size="18" text-anchor="middle">
+    <g>
+      <rect x="54" y="170" width="140" height="72" rx="12" fill="#0f1622" stroke="#3b82f6" stroke-opacity=".55"/>
+      <text x="124" y="212" fill="#f4f7fb">Tweet Text</text>
+    </g>
+    <g>
+      <rect x="278" y="92" width="170" height="72" rx="12" fill="#0f1622" stroke="#43d9ff" stroke-opacity=".55"/>
+      <text x="363" y="134" fill="#f4f7fb">DeBERTa</text>
+      <rect x="278" y="256" width="170" height="72" rx="12" fill="#0f1622" stroke="#8b5cf6" stroke-opacity=".55"/>
+      <text x="363" y="298" fill="#f4f7fb">XGBoost</text>
+    </g>
+    <g>
+      <rect x="544" y="170" width="150" height="72" rx="12" fill="#101a27" stroke="#43d9ff" stroke-opacity=".75"/>
+      <text x="619" y="212" fill="#f4f7fb">Fusion Gate</text>
+    </g>
+    <g>
+      <rect x="772" y="170" width="140" height="72" rx="12" fill="#0f1622" stroke="#2dd4bf" stroke-opacity=".6"/>
+      <text x="842" y="212" fill="#f4f7fb">Prediction</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#8d98aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M194 206h48c30 0 30-78 66-78"/>
+    <path d="M194 206h48c30 0 30 86 66 86"/>
+    <path d="M448 128c60 0 60 78 96 78"/>
+    <path d="M448 292c60 0 60-86 96-86"/>
+    <path d="M694 206h78"/>
+  </g>
+</svg>

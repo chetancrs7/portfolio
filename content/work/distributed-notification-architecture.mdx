@@ -1,0 +1,196 @@
+## Problem
+
+Notification systems fail in ways that are easy to hide during happy-path demos: duplicate sends, delayed workers, provider outages, queue overload, and unclear delivery state. This design study models those failures directly.
+
+<Callout type="warning">
+  This is a design study. Scale numbers are assumptions, design targets, or
+  estimates, not measured production results.
+</Callout>
+
+## Functional Requirements
+
+<ConstraintList
+  items={[
+    "Accept notification requests from internal product services.",
+    "Fan out to channel-specific delivery workers.",
+    "Track delivery attempts and final state per recipient.",
+  ]}
+/>
+
+## Non-Functional Requirements
+
+<ConstraintList
+  items={[
+    "Duplicate incoming events must not create duplicate sends.",
+    "Provider failures should degrade one channel without stopping the whole pipeline.",
+    "Operators need enough state to inspect retries and dead-lettered events.",
+  ]}
+/>
+
+## Scale Assumptions
+
+ASSUMPTION: traffic arrives in bursts around product events.
+
+DESIGN TARGET: delivery fan-out can be higher than request volume.
+
+ESTIMATE: queue depth and retry windows are tuned from stated assumptions, not measured production traffic.
+
+## Capacity Estimates
+
+The first capacity model should size queues and workers around peak fan-out, provider rate limits, and retry amplification. Concrete numerical estimates should be added only when the assumptions are finalized.
+
+## API Design
+
+<ApiEndpoint
+  method="POST"
+  path="/v1/notifications"
+  description="Create a notification intent with an idempotency key."
+/>
+
+<ApiEndpoint
+  method="GET"
+  path="/v1/notifications/{id}"
+  description="Inspect normalized notification state and channel attempts."
+/>
+
+<ApiEndpoint
+  method="POST"
+  path="/v1/notifications/{id}/cancel"
+  description="Cancel work that has not yet been handed to a provider."
+/>
+
+## Data Model
+
+<DatabaseTable
+  name="notification_intents"
+  columns={[
+    "id",
+    "idempotency_key",
+    "recipient_id",
+    "template",
+    "status",
+    "created_at",
+  ]}
+  indexes={[
+    {
+      columns: "(idempotency_key)",
+      reason:
+        "Prevents duplicate upstream events from creating duplicate notification intents.",
+    },
+  ]}
+/>
+
+<DatabaseTable
+  name="delivery_attempts"
+  columns={[
+    "id",
+    "notification_id",
+    "channel",
+    "provider",
+    "attempt_count",
+    "status",
+    "last_error",
+  ]}
+  indexes={[
+    {
+      columns: "(notification_id, channel)",
+      reason:
+        "Supports operator inspection by notification and delivery channel.",
+    },
+  ]}
+/>
+
+## High-Level Architecture
+
+<ArchitecturePanel
+  title="Asynchronous notification pipeline"
+  description="The API records notification intent, publishes work to a queue, and lets channel workers handle provider-specific delivery and retries."
+  nodes={[
+    "Product Service",
+    "Notification API",
+    "Queue",
+    "Channel Worker",
+    "Provider",
+  ]}
+  caption="Architecture diagram is intentionally simple until Mermaid support exists."
+/>
+
+## Component Deep Dives
+
+The API owns validation and idempotent intent creation. Workers own provider translation, retry behavior, and attempt recording. The queue boundary prevents provider latency from blocking product services.
+
+## Failure Scenarios
+
+<FailureMode
+  title="Worker Crash"
+  failure="A worker terminates after sending to the provider but before acknowledging queue work."
+  behavior="The message can be redelivered and processed again."
+  protection="Attempt records and idempotency keys make duplicate side effects visible and bounded."
+/>
+
+<FailureMode
+  title="Provider Outage"
+  failure="A downstream provider rejects requests or times out for one channel."
+  behavior="That channel retries with backoff while other channels continue processing."
+  protection="Channel isolation, retry budgets, and dead-letter queues prevent infinite retry loops."
+/>
+
+## Scaling Strategy
+
+Scale horizontally at the worker layer first, then split queues by channel or priority when one delivery mode starts starving another. Provider rate limits remain the real ceiling.
+
+## Observability
+
+- Queue depth and oldest-message age.
+- Provider success, timeout, and rejection rates.
+- Dead-letter count by template, channel, and provider.
+
+## Security
+
+Notification payloads should minimize sensitive fields, use scoped service credentials, and avoid logging full message bodies unless an explicit debugging path is enabled.
+
+## Tradeoffs
+
+<TradeoffComparison
+  options={[
+    {
+      label: "Queue-backed delivery",
+      status: "Selected",
+      notes: [
+        "Protects product services from provider latency.",
+        "Adds eventual consistency and operational queue ownership.",
+      ],
+    },
+    {
+      label: "Direct provider calls",
+      status: "Rejected for this case",
+      notes: [
+        "Simpler to implement initially.",
+        "Weaker fit for retries, burst handling, and provider isolation.",
+      ],
+    },
+  ]}
+/>
+
+## Alternative Designs
+
+<EngineeringDecision
+  id="ADR-001"
+  title="Persist intent before publishing work"
+  context="The system needs a durable source of truth before asynchronous delivery begins."
+  decision="Write the notification intent transactionally before publishing delivery work."
+  tradeoffs={[
+    "This creates a recovery problem if publish fails after persistence.",
+    "An outbox pattern can close that gap in a later iteration.",
+  ]}
+/>
+
+## Limitations
+
+<Limitations
+  items={[
+    "This is a design study based on assumptions, not a production deployment.",
+    "Capacity estimates remain qualitative until scale numbers are fixed.",
+    "Exactly-once delivery is not claimed; the design targets bounded, observable retries.",
+  ]}
+/>

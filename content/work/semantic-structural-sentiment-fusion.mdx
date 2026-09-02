@@ -1,0 +1,135 @@
+## Research Problem
+
+The research question is whether semantic representations and structural sentiment features produce complementary signal, and whether a gated fusion approach improves classification without masking calibration risk.
+
+## Hypothesis
+
+A fusion model should perform slightly better than either feature family alone when the gate learns when contextual semantics dominate and when structural signals help resolve ambiguity.
+
+## Dataset
+
+- English text sentiment classification setting.
+- Class imbalance and sarcasm-like cases require explicit error analysis.
+- A fuller dataset card remains deferred to later MDX authoring.
+
+## Baselines
+
+<BenchmarkTable
+  columns={["Model", "Accuracy", "Macro F1"]}
+  highlightRow="Fusion"
+  rows={[
+    { Model: "XGBoost", Accuracy: "0.743", "Macro F1": "0.742" },
+    { Model: "KAN", Accuracy: "0.8724", "Macro F1": "0.872" },
+    { Model: "Fusion", Accuracy: "0.8741", "Macro F1": "0.874" },
+  ]}
+/>
+
+## Methodology
+
+Compare classical structural features, neural representations, and the combined model under the same evaluation framing. The goal is not only to maximize score, but to understand confidence, gate behavior, and failure modes.
+
+## Model Architecture
+
+<ArchitecturePanel
+  title="Semantic + structural fusion"
+  description="Two feature paths feed a gated fusion stage before classification."
+  nodes={[
+    "Text",
+    "DeBERTa Features",
+    "Structural Features",
+    "Gate Alpha",
+    "Classifier",
+  ]}
+/>
+
+## Experiment Setup
+
+The setup compares baseline and fusion models in the same evaluation context. MDX keeps the experiment narrative readable while structured components carry tables and technical evidence.
+
+## Evaluation Metrics
+
+- **Accuracy**: overall classification correctness.
+- **Macro F1**: class-balanced performance signal.
+- **AUC**: ranking quality across thresholds.
+- **ECE**: calibration error for confidence quality.
+
+## Results
+
+<BenchmarkTable
+  columns={["Metric", "Value", "Meaning"]}
+  rows={[
+    {
+      Metric: "Test Accuracy",
+      Value: "0.8741",
+      Meaning: "Final fusion model classification accuracy",
+    },
+    {
+      Metric: "Macro F1",
+      Value: "0.874",
+      Meaning: "Class-balanced F1 score",
+    },
+    {
+      Metric: "AUC",
+      Value: "0.947",
+      Meaning: "Ranking quality across decision thresholds",
+    },
+    {
+      Metric: "ECE",
+      Value: "0.0065",
+      Meaning: "Expected calibration error",
+    },
+    {
+      Metric: "Mean Gate Alpha",
+      Value: "0.924",
+      Meaning: "Average learned semantic contribution",
+    },
+    {
+      Metric: "Oracle Accuracy",
+      Value: "0.923",
+      Meaning: "Upper-bound comparison from known context",
+    },
+  ]}
+/>
+
+<Callout type="note">
+  Fusion improves only modestly over KAN despite a considerably higher oracle
+  ceiling. This is a useful research signal because it points toward gating and
+  expert routing as the next place to investigate.
+</Callout>
+
+## Ablation Study
+
+The current branch does not add new ablation numbers. The MDX structure leaves a place to document them when they are available without inventing results.
+
+## Error Analysis
+
+<ErrorAnalysis
+  type="Sarcastic negative text"
+  observation="The semantic model can remain confident when literal wording conflicts with intent."
+  likelyCause="Contextual intent is underrepresented by surface-level sentiment cues."
+  possibleImprovement="Add targeted sarcasm features or evaluate calibrated routing for uncertain cases."
+/>
+
+## Computational Performance
+
+Computational performance should be measured separately from research quality. The next implementation step is to benchmark feature extraction and model inference under a realistic backend serving path.
+
+## Limitations
+
+<Limitations
+  items={[
+    "Dataset details and split methodology need fuller documentation.",
+    "The current summary does not prove robustness across domains or languages.",
+    "Operational serving performance is not yet measured.",
+  ]}
+/>
+
+## Conclusion
+
+The fusion result is modestly stronger than the listed baselines, but the bigger engineering value is the explicit evaluation surface: model quality, calibration, gate behavior, and known failure categories can all be discussed separately.
+
+## Next Experiments
+
+1. Add richer error slices for sarcasm, negation, and short-form ambiguity.
+2. Benchmark the serving path once inference is behind a stable API.
+3. Document dataset provenance and limitations in more detail.

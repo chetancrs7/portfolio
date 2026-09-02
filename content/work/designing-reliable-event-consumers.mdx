@@ -1,0 +1,52 @@
+## The Problem
+
+Event consumers often look correct in a local happy path and then fail under retries, worker restarts, duplicate messages, or downstream timeouts. The dangerous part is not that failure happens. The dangerous part is pretending the consumer will run exactly once.
+
+## Why the Naive Approach Fails
+
+A naive worker handles the message, writes a database row, calls another service, and acknowledges the event at the end. If the process exits between side effects and acknowledgment, the queue can redeliver work that has already partially happened.
+
+```ts
+await handleMessage(event);
+await queue.ack(event.id);
+```
+
+That shape hides the retry contract. It also makes duplicate effects hard to reason about.
+
+## Better Design
+
+The consumer should make idempotency explicit. Store a stable event key, record processing state, and make downstream effects retry-safe. A retry should be boring because the system can recognize what already happened.
+
+<FailureMode
+  title="Redelivery After Partial Success"
+  failure="The worker writes data successfully but crashes before acknowledging the message."
+  behavior="The queue redelivers the same event to another worker."
+  protection="A durable idempotency key lets the second worker detect the already-applied effect."
+/>
+
+## Implementation
+
+1. Validate the event envelope before processing.
+2. Check or create an idempotency record.
+3. Apply database changes transactionally where possible.
+4. Acknowledge only after protected side effects complete.
+5. Send exhausted retries to a dead-letter queue with enough context to debug.
+
+## Tradeoffs
+
+Idempotent consumers require more persistence and state management. In return, they make retry behavior visible and reduce the chance that operational failures become silent data corruption.
+
+## Performance Considerations
+
+The idempotency lookup adds a database read or write to the hot path. That cost is usually worth paying for financial, notification, and workflow events where duplicate side effects are expensive.
+
+## When Not to Use This
+
+For throwaway analytics events where approximate counts are acceptable, a lighter at-least-once consumer may be enough. The tradeoff should be explicit rather than accidental.
+
+## Key Takeaways
+
+- Assume messages can be delivered more than once.
+- Make retry behavior part of the design, not a cleanup task.
+- Prefer visible dead-letter state over silent drops.
+- Do not claim exactly-once behavior unless every side effect supports it.

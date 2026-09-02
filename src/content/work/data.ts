@@ -57,7 +57,6 @@ export const rawWorkItems = [
     date: "2026-07",
     featured: true,
     priority: 2,
-    contentPath: "content/work/backend-location-safety-service.mdx",
     project: {
       role: "Backend service design",
       outcome: "Prepared for a future technical walkthrough.",
@@ -135,7 +134,6 @@ export const rawWorkItems = [
     technologies: ["Embeddings", "Vector Search"],
     date: "2026-03",
     featured: false,
-    contentPath: "content/work/why-rag-systems-fail-in-production.mdx",
     writing: {
       readingTime: 8,
       publishedAt: "2026-03",
