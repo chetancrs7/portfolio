@@ -120,8 +120,7 @@ export const rawWorkItems = [
     ],
     technologies: ["Kafka", "Redis", "Docker"],
     date: "2026-06",
-    featured: true,
-    priority: 3,
+    featured: false,
     contentPath: "content/work/distributed-notification-architecture.mdx",
     systemDesign: {
       designOnly: true,

@@ -94,13 +94,13 @@ export type ExperienceEntry = {
 // employer/date information. Rendered as a clearly-marked placeholder.
 export const experience: ExperienceEntry[] = [
   {
-    role: "Software Engineering (Internship)",
+    role: "Software Engineering Intern",
     organization: null,
     location: null,
     period: null,
     summary:
-      "Backend feature development and bug fixes on an existing ASP.NET / C# application in the accounting and finance domain.",
-    technologies: ["C#", "ASP.NET"],
+      "Implemented and debugged production features in an existing ASP.NET / C# / MySQL application used by accounting and finance staff — working within an established codebase and shipping fixes into a live system.",
+    technologies: ["C#", "ASP.NET", "MySQL"],
     placeholder: true,
   },
 ] as const;
@@ -155,7 +155,7 @@ export const technicalStack: StackGroup[] = [
       "SHAP",
     ],
   },
-  { group: "Data", items: ["PostgreSQL", "PostGIS", "InfluxDB"] },
+  { group: "Data", items: ["PostgreSQL", "PostGIS", "MySQL", "InfluxDB"] },
   {
     group: "Infrastructure",
     items: ["Docker", "Docker Compose", "Nginx", "Linux"],

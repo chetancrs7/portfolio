@@ -6,7 +6,7 @@ export const homeHero = {
     accent: "Intelligent Software.",
   },
   description:
-    "Backend and AI/ML engineer building reliable APIs, distributed services, ML pipelines, retrieval infrastructure and data-intensive applications.",
+    "Backend and AI/ML engineer building reliable APIs and services, machine-learning pipelines, and data-intensive applications — with a focus on evaluation, architecture, and honest tradeoffs.",
   primaryCta: {
     label: "View Work",
     href: "/work",
@@ -41,40 +41,40 @@ export const engineeringFocusAreas = [
     index: "01",
     title: "Backend Systems",
     summary:
-      "APIs, asynchronous services, data architecture and distributed processing.",
+      "APIs, services, data modeling, and clear service boundaries designed around reliability.",
     capabilities: [
       "Service boundaries",
-      "Database design",
-      "Caching strategies",
-      "Event-driven workflows",
+      "Relational & spatial data",
+      "Event-driven design",
+      "Failure handling",
     ],
-    stack: "FastAPI · PostgreSQL · Redis · Kafka",
+    stack: "NestJS · Node.js · PostgreSQL/PostGIS · Docker",
   },
   {
     index: "02",
     title: "AI / ML Systems",
     summary:
-      "Machine learning pipelines, LLM applications, retrieval and model evaluation.",
+      "NLP model engineering with an emphasis on evaluation, calibration, and honest baselines.",
     capabilities: [
       "NLP pipelines",
-      "Retrieval systems",
-      "Evaluation loops",
-      "Model-serving APIs",
+      "Model evaluation",
+      "Calibration",
+      "Baselines & error analysis",
     ],
-    stack: "Python · PyTorch · LangChain · Vector DBs",
+    stack: "Python · PyTorch · Transformers · XGBoost",
   },
   {
     index: "03",
     title: "Infrastructure",
     summary:
-      "Containers, CI/CD, observability, deployment and reliability practices.",
+      "Containerized environments, reproducible builds, and CI-validated delivery.",
     capabilities: [
       "Containerized services",
-      "Deployment pipelines",
-      "Telemetry",
-      "Failure handling",
+      "CI pipelines",
+      "Reproducible builds",
+      "Reverse proxy / TLS",
     ],
-    stack: "Docker · GitHub Actions · Linux · Cloud",
+    stack: "Docker · Docker Compose · Nginx · Linux",
   },
 ] as const;
 
