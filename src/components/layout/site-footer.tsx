@@ -3,11 +3,13 @@ import { ArrowUpRight, Mail } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { footerLinks, mainNavigation } from "@/config/navigation";
-import { siteConfig } from "@/config/site";
+import { isPlaceholderLink, siteConfig } from "@/config/site";
 
 export function SiteFooter() {
   const currentYear = new Date().getFullYear();
-  const visibleFooterLinks = footerLinks.filter((link) => link.href);
+  const visibleFooterLinks = footerLinks.filter(
+    (link) => link.href && !isPlaceholderLink(link.href),
+  );
 
   return (
     <footer className="border-border bg-background/72 relative z-10 border-t">
