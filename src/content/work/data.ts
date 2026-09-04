@@ -62,22 +62,45 @@ export const rawWorkItems = [
     },
   },
   {
-    slug: "backend-location-safety-service",
-    title: "Backend Location / Safety Service",
+    slug: "iot-hiker-tracking-platform",
+    title: "IoT Hiker Tracking Platform",
     summary:
-      "A service-oriented backend concept for location-aware safety workflows, combining geofencing, messaging boundaries, and notification delivery paths.",
+      "A geospatial backend design for hiker location, monitoring, geofencing, and emergency workflows — built on an implemented NestJS API foundation.",
     description:
-      "Designed as representative backend architecture work without implying production deployment or employer-owned scope.",
-    type: "project",
-    status: "prototype",
-    areas: ["backend", "databases", "infrastructure", "security"],
-    technologies: ["FastAPI", "PostgreSQL", "Redis", "Docker"],
-    date: "2026-07",
+      "A backend systems-design case study: an implemented NestJS / TypeScript API scaffold plus a documented geospatial architecture (PostGIS, time-series monitoring, workflow orchestration). Geospatial subsystems are presented as design and planned work, not production claims.",
+    type: "system-design",
+    status: "design-study",
+    areas: [
+      "backend",
+      "distributed-systems",
+      "databases",
+      "infrastructure",
+      "observability",
+    ],
+    technologies: [
+      "NestJS",
+      "Node.js",
+      "TypeScript",
+      "PostgreSQL",
+      "PostGIS",
+      "InfluxDB",
+      "Docker",
+      "Grafana",
+    ],
+    date: "2026-09",
     featured: true,
     priority: 2,
+    contentPath: "content/work/iot-hiker-tracking-platform.mdx",
+    systemDesign: {
+      designOnly: true,
+      scaleAssumptions: [
+        "Ingestion rates, throughput, and fan-out figures in this study are architecture thought-experiments, not measured production numbers.",
+      ],
+    },
     project: {
-      role: "Backend service design",
-      outcome: "Prepared for a future technical walkthrough.",
+      role: "Backend architecture, API design, and geospatial data modeling",
+      outcome:
+        "An implemented NestJS API foundation plus a documented geospatial system design with explicit implemented-vs-planned status.",
     },
   },
   {

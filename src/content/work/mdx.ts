@@ -29,6 +29,8 @@ const workMdxModules = {
     import("../../../content/work/distributed-notification-architecture.mdx"),
   "hybrid-sentiment-intelligence-system": () =>
     import("../../../content/work/hybrid-sentiment-intelligence-system.mdx"),
+  "iot-hiker-tracking-platform": () =>
+    import("../../../content/work/iot-hiker-tracking-platform.mdx"),
   "semantic-structural-sentiment-fusion": () =>
     import("../../../content/work/semantic-structural-sentiment-fusion.mdx"),
   "vector-retrieval-benchmark": () =>

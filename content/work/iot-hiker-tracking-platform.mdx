@@ -1,0 +1,446 @@
+## Overview
+
+This is a **backend systems-design case study**, not a production system. It documents the architecture for a geospatial platform that would track hikers, evaluate spatial boundaries, and drive safety workflows — and it is explicit about what is actually built versus what is designed.
+
+The honest split matters here, so it comes first: an **implemented NestJS/TypeScript API foundation** exists (modular app, a users module, a Jest test harness); the geospatial subsystems — PostGIS spatial storage, geofencing, time-series monitoring, workflow orchestration — are **designed and planned**, not yet implemented. Everything below is labelled accordingly.
+
+<Callout type="note">
+  Design study. The value on this page is the system design and the technology
+  reasoning behind it. Where a component is not built, it is marked **Planned**
+  — it is never described as running.
+</Callout>
+
+<BenchmarkTable
+  columns={["Subsystem", "Status", "Notes"]}
+  caption="Implementation status. 'Implemented' means code exists and runs locally; 'Planned' means designed but not yet built."
+  rows={[
+    {
+      Subsystem: "API foundation (NestJS)",
+      Status: "Implemented",
+      Notes: "Modular app, DI, Jest + e2e harness, ESLint/Prettier.",
+    },
+    {
+      Subsystem: "Users module",
+      Status: "Implemented",
+      Notes: "GET /users and GET /users/:id (stubbed data).",
+    },
+    {
+      Subsystem: "Location ingestion & storage",
+      Status: "Planned",
+      Notes: "DTO validation + PostGIS persistence.",
+    },
+    {
+      Subsystem: "PostGIS spatial model",
+      Status: "Planned",
+      Notes: "Geometry columns, GiST indexes, spatial queries.",
+    },
+    {
+      Subsystem: "Geofencing",
+      Status: "Planned",
+      Notes: "Turf.js point-in-polygon and boundary events.",
+    },
+    {
+      Subsystem: "Time-series monitoring (InfluxDB)",
+      Status: "Planned",
+      Notes: "High-frequency location telemetry.",
+    },
+    {
+      Subsystem: "Workflow orchestration (Node-RED)",
+      Status: "Planned",
+      Notes: "Event → condition → action flows.",
+    },
+    {
+      Subsystem: "SOS & notifications",
+      Status: "Planned",
+      Notes: "Emergency record + delivery channels.",
+    },
+    {
+      Subsystem: "Infra (Docker Compose, Nginx, Grafana)",
+      Status: "Planned",
+      Notes: "Reproducible stack + reverse proxy + dashboards.",
+    },
+  ]}
+/>
+
+> **Engineering question.** How do you design a backend that reliably manages
+> continuously changing geographic state — while keeping spatial queries,
+> monitoring, and safety workflows independently maintainable?
+
+## Problem
+
+A hiking-safety platform has to manage more than latitude and longitude. It manages **users and hikers**, **trails and routes**, **spatial boundaries**, a continuous stream of **location updates**, and **safety events** (boundary violations, SOS). The hard part is that these live at the intersection of three concerns that a naive CRUD backend collapses together:
+
+- **Space** — is this hiker on the trail, inside a restricted zone, within range of another hiker? These are geometric questions, not equality checks on numeric columns.
+- **Time** — a hiker's position is a stream. The _current_ position and the _history_ of positions have very different read/write patterns.
+- **State & service boundaries** — "record a location" and "raise an SOS and notify someone" are different responsibilities with different reliability requirements, and shouldn't be one tangled handler.
+
+The design goal is to keep those three concerns separable so each can be reasoned about, queried, and scaled on its own terms.
+
+## Requirements
+
+<ConstraintList
+  items={[
+    "Location: accept location updates, store the current position, retain history, and answer geometric questions about position.",
+    "Geospatial: represent trails (lines) and zones (polygons), and evaluate containment and proximity — not just store points.",
+    "Safety: model boundary-crossing events and SOS, and route them to a notification path that is decoupled from ingestion.",
+    "Monitoring: expose operational and location telemetry so system behaviour is observable, separately from the transactional store.",
+    "Maintainability: keep business logic, workflow orchestration, persistence, and visualization behind clear boundaries.",
+  ]}
+/>
+
+## Architecture
+
+The design is a small set of services with distinct responsibilities, communicating through the API rather than sharing internals. The diagram shows the **target** architecture; the caption marks what exists today.
+
+<DiagramPanel
+  title="Target System Architecture"
+  description="A NestJS API is the single write path. Transactional spatial state, time-series telemetry, and workflow orchestration are deliberately separate stores/runtimes."
+  caption="Implemented today: the NestJS API foundation and its HTTP surface. Everything else (Nginx, PostGIS, InfluxDB, Node-RED, Grafana, the Flutter client) is designed/planned, not deployed."
+  expandable
+  wide
+>
+  <MermaidDiagram
+    accessibleLabel="Architecture: a mobile client sends requests through Nginx to a NestJS API, which writes current state to PostgreSQL/PostGIS, telemetry to InfluxDB, and emits events to Node-RED, which drives geofence, SOS, and notification actions. Grafana reads InfluxDB."
+    chart={`flowchart TD
+  C[Mobile client / device] --> N[Nginx reverse proxy]
+  N --> API[NestJS API]
+  API --> PG[(PostgreSQL + PostGIS<br/>current spatial state)]
+  API --> IX[(InfluxDB<br/>location telemetry)]
+  API --> NR[Node-RED<br/>workflow orchestration]
+  NR --> GF[Geofence evaluation]
+  NR --> SOS[SOS handling]
+  NR --> NT[Notifications]
+  IX --> GR[Grafana dashboards]`}
+  />
+</DiagramPanel>
+
+Component responsibilities, as designed:
+
+- **Flutter client** _(planned)_ — user interaction, location transmission, displaying relevant state.
+- **NestJS API** _(foundation implemented)_ — HTTP endpoints, validation, business logic, and the single write boundary. This is the part that exists.
+- **PostgreSQL + PostGIS** _(planned)_ — relational domain entities and the **current** spatial state, with real geometry types and spatial indexes.
+- **InfluxDB** _(planned)_ — high-frequency location **telemetry** as time-series.
+- **Node-RED** _(planned)_ — workflow orchestration for events (geofence crossings, SOS) — deliberately _not_ a replacement for API business logic.
+- **Grafana** _(planned)_ — internal operational dashboards over the telemetry store.
+
+## Location Management
+
+Location is the highest-volume path, so its design is deliberately narrow: validate, persist current state, append to history, respond. Endpoint names below are **proposed** — the only implemented endpoints today are on the users module.
+
+<DataFlow
+  caption="Proposed ingestion path. Validation happens before any spatial write so malformed coordinates can never reach PostGIS."
+  steps={[
+    "Device",
+    "POST /locations",
+    "DTO validation",
+    "Location service",
+    "PostGIS (current) + InfluxDB (history)",
+    "202 response",
+  ]}
+/>
+
+What _is_ implemented is the API foundation the location module would slot into — a NestJS controller/service with dependency injection. This is the actual current code:
+
+```ts title="src/users/users.controller.ts" showLineNumbers
+@Controller("users")
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  findAll() {
+    return this.usersService.findAll(); // returns stubbed data today
+  }
+
+  @Get(":id")
+  findOne(@Param("id") id: string) {
+    return { id };
+  }
+}
+```
+
+It matters because it establishes the pattern every future module follows: a thin controller for the HTTP boundary, a service for logic, and DI wiring them — the seam where a real `LocationService` and repository would attach without rewriting the transport layer.
+
+The proposed location DTO is where validation would live. Invalid geographic data must be rejected at the edge, because a single bad coordinate silently corrupts every downstream spatial operation:
+
+```ts title="Proposed — CreateLocationDto (not yet implemented)"
+export class CreateLocationDto {
+  @IsUUID() hikerId: string;
+  @IsLatitude() latitude: number;
+  @IsLongitude() longitude: number;
+  @IsISO8601() recordedAt: string;
+}
+```
+
+## Spatial Data
+
+The core decision is to treat coordinates as **geometry**, not two float columns. PostGIS is the reason PostgreSQL is the chosen relational store: it adds real spatial types, spatial indexes, and geometric predicates, so "is this point inside this polygon?" and "who is within 500 m?" become database operations instead of application-side loops.
+
+At the API boundary the design uses **GeoJSON**, because it maps cleanly onto the domain and is a well-understood interchange format:
+
+- **Point** → a hiker location
+- **LineString** → a trail route
+- **Polygon** → a geofence / zone boundary
+
+```json title="GeoJSON — note the coordinate order is [longitude, latitude]"
+{ "type": "Point", "coordinates": [77.5946, 12.9716] }
+```
+
+That ordering is a classic source of bugs: GeoJSON and PostGIS `ST_MakePoint` both take **longitude first**, while most human-facing UIs say "lat, long". The DTO validation above is what pins the order down before it reaches the database.
+
+A representative proximity query — **conceptual**, illustrating the intended pattern rather than shipped code:
+
+```sql title="Conceptual — hikers within 500 m of a point"
+SELECT hiker_id
+FROM location_current
+WHERE ST_DWithin(
+  geom::geography,
+  ST_MakePoint(:lng, :lat)::geography,
+  500  -- metres, because ::geography uses metres
+);
+```
+
+**Spatial indexing (planned).** Without an index, `ST_DWithin` degrades to a scan over every row. The design specifies a **GiST index** on the geometry column so the planner can prune to a small candidate set via bounding boxes before running exact geometry math — the difference between a query that scales and one that does not.
+
+## Geofencing
+
+A geofence is a polygon boundary; the system needs to know whether a hiker is inside it and, more usefully, when they **cross** it. The design evaluates this with **Turf.js** (`booleanPointInPolygon`) for lightweight in-process checks, comparing the previous and current boundary state to derive enter/exit transitions.
+
+```ts title="Conceptual — boundary check with Turf.js"
+import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
+const isInside = booleanPointInPolygon(hikerPoint, trailBoundary);
+// enter/exit is derived by comparing isInside to the previous state
+```
+
+<DiagramPanel
+  title="Geofence Evaluation (planned)"
+  description="A location update is checked against the relevant boundary; only a change in state produces an event, which is handed to the workflow layer."
+  caption="Only state transitions (enter/exit) emit events — steady-state 'still inside' updates do not, which keeps event volume proportional to crossings, not to location frequency."
+>
+  <MermaidDiagram
+    accessibleLabel="Flowchart: hiker position feeds a spatial check; if inside-state is unchanged, no event; if it changed, emit a boundary event that becomes a notification."
+    chart={`flowchart TD
+  P[Hiker position] --> S[Spatial check: inside boundary?]
+  S --> D{State changed vs previous?}
+  D -- no --> X[No event]
+  D -- yes --> E[Boundary event: entered / exited]
+  E --> NT[Notification workflow]`}
+  />
+</DiagramPanel>
+
+## Data Model
+
+The entities are intentionally few, and the model separates **current state** (relational + spatial, in PostGIS) from **historical telemetry** (time-series, in InfluxDB). That separation is the most important data decision in the design.
+
+<DiagramPanel
+  title="Core Entities (planned)"
+  description="A minimal relational core. Location history is deliberately not a relational table — it is time-series telemetry."
+  caption="PostGIS holds identity, trails, zones, and each hiker's current position; InfluxDB holds the position stream over time."
+>
+  <MermaidDiagram
+    accessibleLabel="Entity relationship diagram: User has Hikers; Hiker has one current Location and many Emergencies; Trail has many Geofences."
+    chart={`erDiagram
+  USER ||--o{ HIKER : owns
+  HIKER ||--|| LOCATION_CURRENT : has
+  HIKER ||--o{ EMERGENCY : raises
+  TRAIL ||--o{ GEOFENCE : defines
+  GEOFENCE ||--o{ EMERGENCY : triggers`}
+  />
+</DiagramPanel>
+
+**Why PostgreSQL + PostGIS for current state:** the domain is relational (users own hikers; trails define zones), needs transactional consistency for safety events, and needs spatial predicates. PostGIS gives all three in one store. This is a fit for _this_ workload, not a claim that PostgreSQL is universally best.
+
+**Why InfluxDB for history:** position updates are a high-frequency, append-only, time-ordered stream that is almost always queried by time window. That is exactly a time-series workload. PostgreSQL _can_ store it, but a dedicated time-series store keeps high-rate telemetry writes off the transactional database and makes retention and time-bucketed queries first-class. The tradeoff is a second datastore to operate — accepted deliberately, and discussed below.
+
+## API Design
+
+The API design follows REST conventions: resource-oriented endpoints, DTO validation at the edge, meaningful HTTP status codes, and consistent error shapes. **Authentication is not implemented and is not claimed** — it is listed as a current limitation.
+
+Implemented endpoints today (users module):
+
+<ApiEndpointList
+  endpoints={[
+    {
+      method: "GET",
+      path: "/users",
+      description: "List users. Implemented; returns stubbed data.",
+    },
+    {
+      method: "GET",
+      path: "/users/:id",
+      description: "Fetch a user by id. Implemented; echoes the id.",
+    },
+  ]}
+/>
+
+Proposed endpoints for the location/safety surface (**not yet implemented**):
+
+<BenchmarkTable
+  columns={["Method", "Endpoint", "Purpose", "Status"]}
+  caption="Proposed API surface. Names are illustrative of the design, not shipped routes."
+  rows={[
+    {
+      Method: "POST",
+      Endpoint: "/locations",
+      Purpose: "Ingest a location update",
+      Status: "Planned",
+    },
+    {
+      Method: "GET",
+      Endpoint: "/hikers/:id/location",
+      Purpose: "Current position of a hiker",
+      Status: "Planned",
+    },
+    {
+      Method: "GET",
+      Endpoint: "/trails/:id",
+      Purpose: "Trail geometry (LineString)",
+      Status: "Planned",
+    },
+    {
+      Method: "POST",
+      Endpoint: "/sos",
+      Purpose: "Raise an emergency event",
+      Status: "Planned",
+    },
+  ]}
+/>
+
+**Failure handling (design).** Each failure has a defined detection and response, distinguishing what would be built from what is aspirational:
+
+<ErrorAnalysisList
+  items={[
+    {
+      type: "Invalid location payload",
+      observation: "Malformed or out-of-range coordinates.",
+      likelyCause: "Bad device data or client bug.",
+      possibleImprovement:
+        "Reject at the DTO boundary with 400 before any spatial write (planned).",
+    },
+    {
+      type: "Unknown hiker",
+      observation: "Location references a non-existent hiker.",
+      likelyCause: "Stale client state or race with deletion.",
+      possibleImprovement:
+        "Referential check → 404/409; never create phantom rows (planned).",
+    },
+    {
+      type: "Notification delivery failure",
+      observation: "A safety notification cannot be delivered.",
+      likelyCause: "Downstream channel outage.",
+      possibleImprovement:
+        "Decouple via the workflow layer so ingestion never blocks on delivery; add retries (future).",
+    },
+  ]}
+/>
+
+## Infrastructure & Observability
+
+The intended runtime is a **Docker Compose** stack so the whole system is reproducible locally with one command and each service stays isolated. None of this is stood up yet — it is the target deployment.
+
+<ArchitecturePanel
+  title="Target Docker Compose Stack (planned)"
+  description="One reproducible local environment. Each concern is its own container; Nginx is the single ingress."
+  nodes={[
+    "Nginx",
+    "NestJS API",
+    "PostgreSQL/PostGIS",
+    "InfluxDB",
+    "Node-RED",
+    "Grafana",
+  ]}
+  caption="Nginx (planned) terminates ingress and reverse-proxies the API. Grafana reads InfluxDB for internal dashboards — it is an operator tool, not a user-facing app."
+/>
+
+The key architectural discipline is keeping these boundaries clean: **NestJS** owns business logic and the write path; **Node-RED** orchestrates event-driven side-effects (a geofence crossing → a notification) without absorbing core logic; **PostGIS/InfluxDB** own persistence; **Grafana** owns visualization. Observability is intentionally split — InfluxDB + Grafana for telemetry — and its current gaps (no metrics/tracing/health-check wiring yet) are stated plainly rather than papered over.
+
+## Scalability & Tradeoffs
+
+No load testing has been done, so nothing here is a measured number — this is architecture reasoning about where the design would strain first.
+
+**Architecture thought-experiment.** Suppose 1,000 active hikers each send one update every 5 seconds → **~200 updates/second**. That is modest for a single API instance, but it stresses specific places: transactional spatial writes to PostGIS, telemetry writes to InfluxDB, and geofence evaluation on every update. The point is not the number — it is identifying _which_ components feel write pressure first.
+
+**Potential bottlenecks** (not observed — reasoned): high-frequency location ingestion, per-update spatial queries, geofence evaluation, and notification fan-out. Three of these are write-amplifying, which is why the design separates telemetry from transactional state up front.
+
+**Backpressure.** Today there is **no queue** — the API would write synchronously. The scaling answer is to put an ingestion queue between the device and persistence so bursts are absorbed by workers rather than dropped:
+
+<DiagramPanel
+  title="Current vs Future Ingestion (planned evolution)"
+  description="The current design writes synchronously. A queue + workers is the intended path once ingestion volume justifies it."
+  caption="This is future architecture — the current foundation has no broker or workers."
+>
+  <MermaidDiagram
+    accessibleLabel="Two flows: current is device to NestJS to PostGIS synchronously; future is device to ingestion API to a queue to workers that write to storage."
+    chart={`flowchart LR
+  subgraph Current
+    A1[Device] --> A2[NestJS API] --> A3[(PostGIS)]
+  end
+  subgraph Future
+    B1[Device] --> B2[Ingestion API] --> B3[[Queue]] --> B4[Workers] --> B5[(Storage)]
+  end`}
+  />
+</DiagramPanel>
+
+An **event-driven evolution** follows naturally: emit `LocationUpdated`, `GeofenceEntered`, `GeofenceExited`, `SOSTriggered`, and let notification, analytics, and audit consumers subscribe independently. This is **future architecture**, not current behaviour.
+
+**Tradeoffs**, grounded in the actual design decisions:
+
+| Decision                      | Benefit                                                  | Cost                                                     |
+| ----------------------------- | -------------------------------------------------------- | -------------------------------------------------------- |
+| PostgreSQL + PostGIS          | Relational integrity + real spatial queries in one store | Spatial workloads and indexes add operational complexity |
+| Separate InfluxDB for history | High-rate telemetry writes stay off the transactional DB | A second datastore to run and reason about               |
+| Node-RED for orchestration    | Visual, decoupled event workflows                        | An extra runtime; must resist leaking core logic into it |
+| Docker Compose                | Reproducible, isolated local environment                 | Local-only; not a production deployment                  |
+
+<EngineeringDecision
+  id="ADR-01"
+  title="Two datastores instead of one"
+  context="Current spatial state and high-frequency position history are both 'location data', which invites storing everything in PostgreSQL."
+  options={[
+    "Single PostgreSQL store for state + history",
+    "PostGIS for state, InfluxDB for time-series history",
+  ]}
+  decision="Split by workload: PostGIS owns transactional current state and geometry; InfluxDB owns the append-only, time-queried position stream."
+  tradeoffs={[
+    "Each store matches its workload — spatial predicates in PostGIS, time-bucketed reads and retention in InfluxDB.",
+    "Operational overhead of two systems, and the discipline of a clear write boundary between them.",
+  ]}
+/>
+
+## Limitations & Next Steps
+
+<Limitations
+  items={[
+    "The geospatial platform is designed, not implemented — only the NestJS API foundation and users module run today.",
+    "No authentication, authorization, or rate limiting exists yet; the users endpoints return stubbed data.",
+    "No PostGIS, InfluxDB, Node-RED, Grafana, or Nginx is deployed — the Docker stack is a target, not a running environment.",
+    "No load testing, fault injection, or production infrastructure; all scale figures are thought-experiments.",
+    "Observability (metrics, tracing, health checks) is designed but not wired.",
+  ]}
+/>
+
+Concrete next steps, in build order:
+
+1. Implement the `Location` module: `CreateLocationDto` validation, service, and a PostGIS repository.
+2. Stand up the Docker Compose stack (PostGIS, InfluxDB, Grafana, Node-RED, Nginx).
+3. Add geometry columns + a GiST index and the first real `ST_DWithin` query.
+4. Implement geofence evaluation with Turf.js and emit enter/exit events.
+5. Route events through Node-RED to a notification path; model SOS as its own workflow.
+6. Add authentication and request validation across the surface.
+7. Introduce an ingestion queue + workers once write volume justifies it.
+8. Wire observability (health checks, metrics) and run a first load test to replace the thought-experiment with data.
+
+## My Contribution
+
+The work represented here is the **backend architecture, API design, and geospatial data modeling** — the system decomposition, the datastore-selection reasoning (PostGIS vs InfluxDB), the API and DTO design, the geofencing approach, and the scaling/evolution plan — plus the **implemented NestJS API foundation** (modular structure, users module, test harness). The geospatial subsystems are presented as design, and this page does not claim any of them as running software.
+
+## What I Learned
+
+- Geospatial data is not "two float columns" — treating coordinates as geometry (PostGIS) turns spatial questions into database operations and makes indexing possible.
+- Current state and historical telemetry are **different workloads**; matching each to the right store (PostGIS vs InfluxDB) is a clearer design than forcing one database to do both.
+- Service boundaries should follow responsibility: business logic, workflow orchestration, persistence, and visualization each belong in their own layer, and coupling them is the easy mistake.
+- Scaling location ingestion is fundamentally about **write volume and backpressure** — the queue-and-workers pattern is the honest answer, and it belongs in "future work" until the numbers demand it.
+- Safety features need explicit failure handling designed in, not bolted on — a notification path that can fail must never block ingestion.
+
+---
+
+Explore more engineering work on the [Work index →](/work).
