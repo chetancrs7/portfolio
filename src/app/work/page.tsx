@@ -5,6 +5,7 @@ import { WorkAreasSummary } from "@/components/work/work-areas-summary";
 import { WorkCta } from "@/components/work/work-cta";
 import { WorkExplorer } from "@/components/work/work-explorer";
 import { WorkHeader } from "@/components/work/work-header";
+import { siteConfig } from "@/config/site";
 import {
   getFeaturedWork,
   getPublishedWork,
@@ -23,6 +24,14 @@ export const metadata: Metadata = {
   title: "Work",
   description:
     "Projects, research, architecture studies, writing, and labs across backend engineering and AI/ML systems.",
+  alternates: { canonical: `${siteConfig.url}/work` },
+  openGraph: {
+    type: "website",
+    title: `Work — ${siteConfig.name}`,
+    description:
+      "Projects, research, and architecture studies across backend engineering and AI/ML systems.",
+    url: `${siteConfig.url}/work`,
+  },
 };
 
 type WorkPageProps = {

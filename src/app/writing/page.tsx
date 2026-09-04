@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ArticleCard } from "@/components/writing/article-card";
 import { WritingFilters } from "@/components/writing/writing-filters";
+import { siteConfig } from "@/config/site";
 import {
   articleCategoryLabels,
   articleCategorySchema,
@@ -24,6 +25,14 @@ export const metadata: Metadata = {
   title: "Writing & Insights",
   description:
     "Notes on backend engineering, AI/ML, systems design, and lessons from building technical projects.",
+  alternates: { canonical: `${siteConfig.url}/writing` },
+  openGraph: {
+    type: "website",
+    title: `Writing & Insights — ${siteConfig.name}`,
+    description:
+      "Notes on backend engineering, AI/ML, systems design, and lessons from building technical projects.",
+    url: `${siteConfig.url}/writing`,
+  },
 };
 
 type WritingPageProps = {

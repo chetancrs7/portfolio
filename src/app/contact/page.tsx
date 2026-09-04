@@ -14,9 +14,17 @@ import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: `Contact — ${siteConfig.author.name}`,
+  title: "Contact",
   description:
     "Get in touch about backend engineering, AI/ML systems, or technical collaboration.",
+  alternates: { canonical: `${siteConfig.url}/contact` },
+  openGraph: {
+    type: "website",
+    title: `Contact — ${siteConfig.author.name}`,
+    description:
+      "Get in touch about backend engineering, AI/ML systems, or technical collaboration.",
+    url: `${siteConfig.url}/contact`,
+  },
 };
 
 const openTo = [

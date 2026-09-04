@@ -46,9 +46,23 @@ export async function generateMetadata({
     };
   }
 
+  const url = `${siteConfig.url}/work/${item.slug}`;
+
   return {
-    title: `${item.title} | ${siteConfig.author.name}`,
+    title: item.title,
     description: item.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      title: item.title,
+      description: item.summary,
+      url,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description: item.summary,
+    },
   };
 }
 

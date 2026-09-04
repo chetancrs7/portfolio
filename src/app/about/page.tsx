@@ -26,9 +26,17 @@ import {
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: `About — ${siteConfig.author.name}`,
+  title: "About",
   description:
     "Backend and AI/ML engineer focused on reliable systems, applied machine learning, and honest evaluation. Computer Science at Sunway University.",
+  alternates: { canonical: `${siteConfig.url}/about` },
+  openGraph: {
+    type: "profile",
+    title: `About — ${siteConfig.author.name}`,
+    description:
+      "Backend and AI/ML engineer focused on reliable systems, applied machine learning, and honest evaluation.",
+    url: `${siteConfig.url}/about`,
+  },
 };
 
 const personJsonLd = {

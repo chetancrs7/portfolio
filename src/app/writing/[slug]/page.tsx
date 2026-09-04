@@ -45,7 +45,7 @@ export async function generateMetadata({
   const url = `${siteConfig.url}/writing/${article.slug}`;
 
   return {
-    title: `${article.title} | ${siteConfig.author.name}`,
+    title: article.title,
     description: article.description,
     keywords: article.tags,
     alternates: { canonical: url },
@@ -86,8 +86,24 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   );
   const adjacent = getAdjacentArticles(slug);
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: article.title,
+    description: article.description,
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt ?? article.publishedAt,
+    author: { "@type": "Person", name: siteConfig.author.name },
+    url: `${siteConfig.url}/writing/${article.slug}`,
+    keywords: article.tags.join(", "),
+  };
+
   return (
     <div className="technical-background min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <PageContainer className="pb-16" variant="wide">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
           <main className="min-w-0">
