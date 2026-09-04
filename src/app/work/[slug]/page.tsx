@@ -11,6 +11,7 @@ import { CaseStudyNavigation } from "@/components/work/case-study/case-study-nav
 import { CaseStudyToc } from "@/components/work/case-study/case-study-toc";
 import { MetricStrip } from "@/components/work/case-study/metric-strip";
 import { RelatedWork } from "@/components/work/case-study/related-work";
+import { RelatedWriting } from "@/components/work/case-study/related-writing";
 import { TechnicalSnapshot } from "@/components/work/case-study/technical-snapshot";
 import { siteConfig } from "@/config/site";
 import {
@@ -21,6 +22,7 @@ import {
   type WorkItem,
 } from "@/content/work";
 import { getWorkContent } from "@/content/work/mdx";
+import { getArticlesForProject } from "@/content/writing";
 
 type WorkDetailPageProps = {
   params: Promise<{
@@ -77,6 +79,7 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
   const content = await getWorkContent(item);
   const adjacentWork = getAdjacentPublishedWork(item.slug);
   const relatedWork = getRelatedPublishedWork(item);
+  const relatedWriting = getArticlesForProject(item.slug);
   const tocItems = content?.headings ?? [];
   const Content = content?.Content;
 
@@ -99,6 +102,7 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
 
             <article className="mx-auto mt-10 max-w-3xl">
               {Content ? <Content /> : <CaseStudyFallback item={item} />}
+              <RelatedWriting articles={relatedWriting} />
               <RelatedWork items={relatedWork} />
               <CaseStudyNavigation
                 next={adjacentWork.next}

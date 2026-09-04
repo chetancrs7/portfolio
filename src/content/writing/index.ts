@@ -82,6 +82,13 @@ export function getArticleHref(article: Pick<Article, "slug">) {
   return `/writing/${article.slug}`;
 }
 
+/** Published articles that reference the given Work slug in `relatedProjects`. */
+export function getArticlesForProject(workSlug: string): Article[] {
+  return getPublishedArticles().filter((article) =>
+    (article.relatedProjects ?? []).includes(workSlug),
+  );
+}
+
 /** Resolve `relatedProjects` slugs against the Work registry (no duplication). */
 export function getRelatedProjects(article: Article): WorkItem[] {
   return (article.relatedProjects ?? [])
