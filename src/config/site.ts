@@ -1,24 +1,29 @@
 export const siteConfig = {
   name: "Chetan Rao Sonoo",
-  title: "Chetan Rao Sonoo - Backend & AI/ML Engineer",
+  title: "Chetan Rao Sonoo — Backend & AI/ML Engineer",
   description:
     "Backend and AI/ML engineering portfolio featuring technical projects, system design, research and engineering writing.",
-  url: "https://example.com",
+  // Configurable via NEXT_PUBLIC_SITE_URL; falls back to a safe placeholder so
+  // the build never depends on a hardcoded production domain.
+  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com").replace(
+    /\/$/,
+    "",
+  ),
   author: {
     name: "Chetan Rao Sonoo",
     email: "karancrs.7@gmail.com",
   },
   links: {
     github: "https://github.com/chetancrs7",
-    linkedin: "https://www.linkedin.com/in/your-username",
+    linkedin: "https://www.linkedin.com/in/chetanrsk",
     email: "mailto:karancrs.7@gmail.com",
-    resume: "#resume-coming-soon",
+    resume: "/resume.pdf",
   },
   // Links still pointing at placeholders are hidden in the UI until real values
   // are supplied (see isPlaceholderLink in src/config/site helpers usage).
   placeholders: {
-    resume: true,
-    linkedin: true,
+    resume: false,
+    linkedin: false,
   },
   availability: "Open to backend and AI/ML opportunities",
 } as const;
