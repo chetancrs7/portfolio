@@ -14,9 +14,9 @@ export function HybridSentimentArchitecture() {
         Hybrid expert fusion architecture
       </title>
       <desc id="hybrid-sentiment-description">
-        Cleaned tweet text flows into semantic and structural branches, both
-        experts feed a fusion gate, and the gate emits the final sentiment
-        probability.
+        Tweet text flows through DeBERTa-v3-base into a 768-dimensional
+        embedding, then splits into semantic and structural branches before an
+        adaptive gate emits the final sentiment probability.
       </desc>
       <defs>
         <marker
@@ -36,20 +36,29 @@ export function HybridSentimentArchitecture() {
 
       <DiagramNode
         height={70}
-        label="Clean Tweet"
+        label="Tweet"
         type="INPUT"
-        width={170}
+        width={150}
         x={40}
         y={222}
       />
       <DiagramNode
         accent="blue"
         height={70}
-        label="DeBERTa Embeddings"
-        type="SEMANTIC"
-        width={190}
-        x={285}
-        y={112}
+        label="DeBERTa-v3-base"
+        type="ENCODER"
+        width={180}
+        x={230}
+        y={222}
+      />
+      <DiagramNode
+        accent="cyan"
+        height={70}
+        label="768D Embedding"
+        type="VECTOR"
+        width={170}
+        x={450}
+        y={222}
       />
       <DiagramNode
         accent="violet"
@@ -57,7 +66,7 @@ export function HybridSentimentArchitecture() {
         label="Structural Features"
         type="STRUCTURAL"
         width={190}
-        x={285}
+        x={450}
         y={332}
       />
       <DiagramNode
@@ -66,7 +75,7 @@ export function HybridSentimentArchitecture() {
         label="KAN Semantic Expert"
         type="MODEL"
         width={190}
-        x={520}
+        x={680}
         y={112}
       />
       <DiagramNode
@@ -75,18 +84,18 @@ export function HybridSentimentArchitecture() {
         label="XGBoost Expert"
         type="MODEL"
         width={190}
-        x={520}
+        x={680}
         y={332}
       />
       <DiagramNode
         accent="cyan"
         height={76}
         label="Fusion Gate"
-        note="mean alpha ≈ 0.924"
+        note="mean alpha ≈ 0.98"
         type="FUSION"
         width={180}
-        x={700}
-        y={222}
+        x={520}
+        y={32}
       />
       <DiagramNode
         accent="teal"
@@ -98,26 +107,21 @@ export function HybridSentimentArchitecture() {
         y={444}
       />
 
+      <DiagramConnector d="M190 257H230" markerId={markerId} />
+      <DiagramConnector d="M410 257H450" markerId={markerId} />
       <DiagramConnector
-        d="M210 257C245 257 245 147 285 147"
+        d="M535 222C535 170 620 147 680 147"
+        markerId={markerId}
+      />
+      <DiagramConnector d="M535 292V332" markerId={markerId} />
+      <DiagramConnector d="M640 367H680" markerId={markerId} />
+      <DiagramConnector d="M775 112C775 70 720 70 700 70" markerId={markerId} />
+      <DiagramConnector
+        d="M775 332C775 254 690 92 700 70"
         markerId={markerId}
       />
       <DiagramConnector
-        d="M210 257C245 257 245 367 285 367"
-        markerId={markerId}
-      />
-      <DiagramConnector d="M475 147H520" markerId={markerId} />
-      <DiagramConnector d="M475 367H520" markerId={markerId} />
-      <DiagramConnector
-        d="M710 147C758 147 760 208 770 222"
-        markerId={markerId}
-      />
-      <DiagramConnector
-        d="M710 367C758 367 760 306 770 298"
-        markerId={markerId}
-      />
-      <DiagramConnector
-        d="M790 298C790 404 612 479 570 479"
+        d="M610 108C590 250 530 380 490 444"
         markerId={markerId}
       />
 

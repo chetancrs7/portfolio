@@ -10,6 +10,7 @@ import { CaseStudyHeader } from "@/components/work/case-study/case-study-header"
 import { CaseStudyNavigation } from "@/components/work/case-study/case-study-navigation";
 import { CaseStudyToc } from "@/components/work/case-study/case-study-toc";
 import { MetricStrip } from "@/components/work/case-study/metric-strip";
+import { RelatedWork } from "@/components/work/case-study/related-work";
 import { TechnicalSnapshot } from "@/components/work/case-study/technical-snapshot";
 import { siteConfig } from "@/config/site";
 import {
@@ -61,6 +62,7 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
 
   const content = await getWorkContent(item);
   const adjacentWork = getAdjacentPublishedWork(item.slug);
+  const relatedWork = getRelatedPublishedWork(item);
   const tocItems = content?.headings ?? [];
   const Content = content?.Content;
 
@@ -83,6 +85,7 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
 
             <article className="mx-auto mt-10 max-w-3xl">
               {Content ? <Content /> : <CaseStudyFallback item={item} />}
+              <RelatedWork items={relatedWork} />
               <CaseStudyNavigation
                 next={adjacentWork.next}
                 previous={adjacentWork.previous}
@@ -104,6 +107,19 @@ export default async function WorkDetailPage({ params }: WorkDetailPageProps) {
       </PageContainer>
     </div>
   );
+}
+
+function getRelatedPublishedWork(item: WorkItem) {
+  return getPublishedWork()
+    .filter((candidate) => candidate.slug !== item.slug)
+    .map((candidate) => ({
+      candidate,
+      score: candidate.areas.filter((area) => item.areas.includes(area)).length,
+    }))
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ candidate }) => candidate);
 }
 
 function getAdjacentPublishedWork(slug: string) {
