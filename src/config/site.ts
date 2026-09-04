@@ -6,12 +6,12 @@ export const siteConfig = {
   url: "https://example.com",
   author: {
     name: "Chetan Rao Sonoo",
-    email: "hello@example.com",
+    email: "karancrs.7@gmail.com",
   },
   links: {
     github: "https://github.com/chetancrs7",
     linkedin: "https://www.linkedin.com/in/your-username",
-    email: "mailto:hello@example.com",
+    email: "mailto:karancrs.7@gmail.com",
     resume: "#resume-coming-soon",
   },
   // Links still pointing at placeholders are hidden in the UI until real values
@@ -19,7 +19,6 @@ export const siteConfig = {
   placeholders: {
     resume: true,
     linkedin: true,
-    email: true,
   },
   availability: "Open to backend and AI/ML opportunities",
 } as const;
@@ -27,4 +26,35 @@ export const siteConfig = {
 /** True when a link still points at a scaffold placeholder value. */
 export function isPlaceholderLink(href: string) {
   return /your-username|example\.com|resume-coming-soon/.test(href);
+}
+
+export type SocialProfile = {
+  key: "github" | "linkedin";
+  label: string;
+  href: string;
+  description: string;
+};
+
+/**
+ * Single source of truth for professional profile links. Consumed by the
+ * Contact page, About page, and footer. Placeholder links are filtered by
+ * `getVisibleSocialProfiles`.
+ */
+export const socialProfiles: SocialProfile[] = [
+  {
+    key: "github",
+    label: "GitHub",
+    href: siteConfig.links.github,
+    description: "Source code and engineering projects.",
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    href: siteConfig.links.linkedin,
+    description: "Professional experience and background.",
+  },
+];
+
+export function getVisibleSocialProfiles() {
+  return socialProfiles.filter((profile) => !isPlaceholderLink(profile.href));
 }
