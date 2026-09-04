@@ -1,80 +1,87 @@
 # Backend + AI/ML Engineering Portfolio
 
-A modern developer portfolio showcasing backend engineering, AI/ML projects, system design case studies, technical research, and engineering insights.
+The portfolio of **Chetan Rao Sonoo** — a backend and AI/ML engineer. It presents
+technical projects, system-design case studies, AI/ML research, and engineering
+writing, with an emphasis on architecture, evaluation, and honest tradeoffs rather
+than marketing.
 
-## Status
+## Tech stack
 
-This portfolio is under active development. The current branch establishes the project foundation only; final portfolio pages, visual design, content systems, and enhanced interactions will be added in later branches.
+Only what the site actually uses:
 
-## Technology Foundation
+- **Next.js** (App Router, Turbopack) + **React** + **TypeScript**
+- **Tailwind CSS** with **shadcn/ui** primitives and a small set of custom
+  motion/border effects
+- **MDX** (`@next/mdx` + `remark-gfm`) for case studies and articles
+- **Shiki** (via `rehype-pretty-code`) for code highlighting; **Mermaid** for diagrams
+- **Zod** for content-model validation
+- **Geist Sans / Geist Mono** via `next/font`
+- **GitHub Actions** for CI
 
-- Next.js App Router
-- React
-- TypeScript
-- Tailwind CSS
-- pnpm
-- ESLint
-- Prettier
-- Vercel-ready project structure
+There is no database, no backend API, and no server-side form — the contact flow
+is a `mailto:` link, so the app is entirely static/SSR.
 
-Planned future additions include shadcn/ui, Magic UI, MDX, Shiki, Mermaid, Zod, Resend, Playwright, Vitest, and analytics.
+## Architecture
 
-## Local Development
+```text
+Browser
+  ↓
+Next.js App Router  (static + server-rendered pages)
+  ↓
+Content registries (TypeScript + Zod)  →  MDX case studies & articles
+  ↓
+Static assets / fonts  →  Deployment platform CDN
+```
 
-Install dependencies:
+Content is single-sourced: the Work and Writing **registries** (`src/content/*`)
+hold typed, Zod-validated metadata, while long-form content lives in **MDX**
+(`content/*`). Drafts and future-dated posts are filtered centrally, so they never
+reach the sitemap, RSS, or any listing. See [`docs/architecture.md`](docs/architecture.md).
+
+## Local development
 
 ```bash
 pnpm install
+pnpm dev        # http://localhost:3000
 ```
 
-Start the development server:
+Requires Node `>= 20.9` (see [`.nvmrc`](.nvmrc)) and pnpm `11.19.0`
+(`corepack enable`).
 
-```bash
-pnpm dev
-```
+## Scripts
 
-Open [http://localhost:3000](http://localhost:3000) to view the app.
+- `pnpm dev` — start the dev server
+- `pnpm build` — production build
+- `pnpm start` — serve the production build
+- `pnpm lint` — ESLint
+- `pnpm typecheck` — TypeScript (`tsc --noEmit`)
+- `pnpm format` / `pnpm format:check` — Prettier
 
-## Available Scripts
+## Deployment
 
-- `pnpm dev` - start the local development server
-- `pnpm build` - create a production build
-- `pnpm start` - run the production server
-- `pnpm lint` - run ESLint
-- `pnpm typecheck` - run TypeScript checks
-- `pnpm format` - format the repository with Prettier
-- `pnpm format:check` - check formatting without writing changes
+Deploys to Vercel with zero configuration, or to any Node `>= 20.9` host via
+`pnpm build && pnpm start`. The one (optional, public) environment variable is
+`NEXT_PUBLIC_SITE_URL`. Full instructions and a verification checklist are in
+[`DEPLOYMENT.md`](DEPLOYMENT.md).
 
-## Project Structure
+<!-- Live site: add the URL here once deployed. -->
+
+## Project structure
 
 ```text
+content/         MDX case studies and articles
 src/
-  app/
-  components/
-    ui/
-    layout/
-    shared/
-    sections/
-  config/
-  content/
-  hooks/
-  lib/
-  types/
-public/
-  documents/
-  icons/
-  images/
-docs/
-tests/
-.github/workflows/
+  app/           routes, sitemap, robots, error pages
+  components/     UI, layout, work/writing, diagrams, MDX
+  config/         site + navigation configuration
+  content/        Work and Writing registries (typed + Zod)
+  data/           profile / homepage content
+docs/            architecture and authoring notes
+public/          favicon, résumé, images
+.github/workflows/ CI
 ```
 
-## Branch and Development Workflow
+## Workflow
 
-Use short-lived branches for focused changes. Bootstrap work lives on `chore/project-bootstrap`; future feature branches should keep setup, design-system work, content modeling, and integrations separated where practical.
-
-Pull requests should pass linting, type checks, formatting checks, and production builds before merging into `main`.
-
-## Environment Variables
-
-Copy `.env.example` to `.env.local` for local development and fill in values as needed. Do not commit real secrets.
+Short-lived feature branches → pull request → CI (lint, typecheck, format, build)
+→ review → merge to `main` → deploy. CI must pass before merge.
