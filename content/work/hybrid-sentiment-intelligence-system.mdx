@@ -1,275 +1,583 @@
 ## Overview
 
-This case study treats sentiment inference as a backend-ready AI system, not just a model score. The system combines a semantic expert with structural linguistic features, then records enough model behavior to make evaluation and future serving decisions inspectable.
+This case study documents an **experimental research system**, not a production sentiment API. The goal was to test whether pairing two very different classifiers — a spline-based semantic model and a gradient-boosted linguistic model — behind a learned gate would beat either one alone on binary tweet sentiment, and to keep the architecture modular enough that each pathway's contribution could be measured on its own.
 
-The project is useful because it separates three concerns: model quality, model confidence, and the service boundary that would eventually expose predictions to application code.
+The short answer is the interesting part: the semantic expert did almost all of the work, and the learned fusion added no measurable accuracy over it. That negative result — and the diagnostics that explain it — is the substance of the project.
 
 <Callout type="result">
-  The fusion model reached test accuracy of `0.8741` with Macro F1 of `0.874`,
-  AUC of `0.947`, and ECE of `0.0065`.
+  On the held-out Sentiment140 test split, the fused model reached **0.875
+  accuracy**, **0.875 macro-F1**, and **0.947 AUC**, with an expected
+  calibration error of **0.0065** after temperature scaling. The standalone KAN
+  semantic expert reached the same 0.875 accuracy — the learned gate matched its
+  stronger expert to three decimal places rather than improving on it.
 </Callout>
+
+<DataFlow
+  caption="The whole page follows this arc: a hypothesis about complementary experts, an architecture built to test it, and an honest reading of what the metrics showed."
+  steps={[
+    "Problem",
+    "Hypothesis",
+    "Architecture",
+    "Experiments",
+    "Result",
+    "Why",
+    "Next",
+  ]}
+/>
+
+> **Engineering question.** Can a hybrid model combine contextual semantic
+> representations with explicit linguistic structure while staying modular,
+> measurable, calibrated, and reasonably decomposable — and does the learned
+> fusion actually exploit the two experts' differences?
+
+**Research framing** asks whether hybrid expert fusion improves sentiment
+classification. **Engineering framing** asks whether the system can be built so
+that the contribution of each pathway is inspectable in isolation. The project
+answers the second cleanly and the first with a qualified _no_ for this dataset.
 
 ## Problem
 
-Traditional sentiment systems tend to lean on either semantic representation or engineered structural signals. Transformer-style semantic features capture context, but can be overconfident on short or sarcastic text. Structural features can preserve useful surface patterns, but are weaker when the meaning depends on context.
+Sentiment on short, noisy text pulls in two directions. Lexical and structural
+signals — negation, intensifiers, punctuation, capitalisation, emoji polarity —
+are cheap, explicit, and easy to inspect, but they are brittle when meaning
+depends on context. Transformer embeddings capture that context, but a raw
+768-dimensional vector is opaque: it is hard to say _why_ a prediction was made,
+and a single dense representation gives no natural place to reason about the
+decision.
 
-The engineering problem is to combine both views while keeping the result interpretable enough to operate behind a backend API.
+The project treats this as a motivation for an experiment rather than a solved
+problem. If contextual meaning and explicit surface structure are genuinely
+different views of a tweet, then two specialists — one per view — plus a gate
+that learns _who to trust per sample_ should beat a single model that has to do
+both jobs at once. That is a testable claim, and the architecture below exists
+to test it.
 
-## Constraints
+### Constraints
 
 <ConstraintList
   items={[
-    "ML inference should not block unrelated user-facing requests.",
-    "Evaluation should distinguish accuracy, calibration, and ranking quality.",
-    "The model boundary should expose confidence and model version information.",
-    "Retries should be safe if inference is moved to asynchronous processing.",
+    "The DeBERTa embedding is treated as a fixed upstream representation; both downstream experts consume the same 768-d vector, so their difference comes from the model, not the input.",
+    "The two experts must stay strictly separated — the structural expert never sees embeddings, the semantic expert never sees engineered features — so each pathway's contribution can be evaluated independently.",
+    "Evaluation must separate accuracy, ranking quality (AUC), and calibration (ECE); a single accuracy number is not enough to judge a probabilistic classifier.",
+    "Fusion has to be judged against the strongest single expert, not against the weaker one, to avoid crediting the gate for gains it did not produce.",
+    "The pipeline runs on commodity hardware, so the fusion stage trains on a CPU-friendly stratified subsample rather than all 1.6M rows.",
   ]}
 />
 
 ## Architecture
 
+The system is a **parallel, decision-level ensemble**. A tweet is encoded once
+by DeBERTa; the embedding then feeds two independent experts whose class
+probabilities are combined by a small learned gate.
+
 <DiagramPanel
   title="Hybrid Expert Fusion Architecture"
-  description="Semantic and structural experts operate independently before a learned fusion gate combines their outputs."
-  caption="The average learned gate alpha is approximately 0.924 in the known evaluation context, which suggests the fusion model relies heavily on the semantic expert while still preserving a structural path."
+  description="Semantic and structural experts run in parallel on a shared embedding; an adaptive gate emits a per-sample trust weight and the fused probability is a convex combination of the two experts."
+  caption="Decision-level fusion: the experts never share parameters or features. Their only meeting point is the gate, which mixes their output distributions."
   expandable
   wide
 >
   <HybridSentimentArchitecture />
 </DiagramPanel>
 
-The semantic path uses DeBERTa representations and a KAN semantic expert. The structural path uses linguistic features and an XGBoost expert. The fusion stage learns a gate alpha so the final prediction can represent how strongly the semantic side contributed.
+The design splits cleanly into three stages:
 
-<Figure
-  src="/images/work/hybrid-sentiment/fusion-overview.svg"
-  alt="Block diagram showing text flowing through semantic and structural experts into a fusion gate."
-  caption="Local technical figure used to verify MDX figure rendering and asset organization."
+- **Stage 1 — Semantic representation.** `microsoft/deberta-v3-base` produces a
+  768-dimensional contextual embedding per tweet. This vector is the single
+  shared input to both downstream experts.
+- **Stage 2 — Parallel experts.** A Kolmogorov–Arnold Network (KAN) learns
+  nonlinear semantic relationships directly from the embedding. In parallel,
+  XGBoost operates on 50 engineered linguistic features extracted from the raw
+  text — it never sees the embedding.
+- **Stage 3 — Adaptive fusion.** A gating network emits a per-sample weight
+  `alpha` and the final prediction is `alpha * P_kan + (1 - alpha) * P_xgb`.
+
+## Semantic Expert — KAN
+
+A Kolmogorov–Arnold Network replaces a linear layer's fixed weight matrix with a
+matrix of _learnable univariate functions_. An edge from input `i` to output `j`
+computes `phi_ij(x_i) = scale_base * base(x_i) + scale_sp * spline_ij(x_i)`, and
+each output neuron sums the edge functions feeding into it: `y_j = sum_i
+phi_ij(x_i)`. Gradients from the downstream loss flow straight into the spline
+coefficients, so the _shape_ of every edge function is learned like any other
+weight — and each spline's grid is periodically refit to the quantiles of the
+activations that actually flow through it.
+
+The pathway is deliberately **shallow** — three hidden layers of width 256, 128,
+and 64 — and each layer is named for the role it plays, with the spline family
+chosen to match that role:
+
+<ArchitecturePanel
+  title="KAN Semantic Pathway"
+  description="Four adaptive-spline layers map the 768-d embedding down to two class logits. No linear projections, normalisation, or dropout are inserted between them, so the named stages are the architecture."
+  nodes={[
+    "768D embedding",
+    "Semantic Compression",
+    "Context Interaction",
+    "Sentiment Distortion",
+    "Emotion Hotspots",
+    "Logits",
+  ]}
+  caption="Layers 1–2 use B-splines; layer 3 uses a thin-plate spline (r² log|r|) and layer 4 a Gaussian RBF (exp(−r²/2)), both realised as radial-basis KAN layers with the same y_j = Σ φ_ij(x_i) form."
 />
 
-## Data Flow
+```python title="src/models/kan/model.py" showLineNumbers {8-14}
+class KANSentimentClassifier(nn.Module):
+    """Four adaptive-spline layers over a fixed 768-d DeBERTa embedding."""
+
+    def __init__(self, input_dim=768, hidden_dims=(256, 128, 64), n_classes=2,
+                 grid_size=5, spline_order=3, grid_range=(-2.0, 2.0)):
+        super().__init__()
+        semantic_dim, context_dim, distortion_dim = hidden_dims
+        # Each stage uses the spline family its role implies.
+        self.semantic_compression = SemanticCompressionLayer(input_dim, semantic_dim, ...)    # B-spline
+        self.context_interaction  = ContextInteractionLayer(semantic_dim, context_dim, ...)   # B-spline
+        self.sentiment_distortion = SentimentDistortionLayer(context_dim, distortion_dim, ...) # thin-plate
+        self.emotion_hotspot      = EmotionHotspotLayer(distortion_dim, n_classes, ...)        # Gaussian RBF
+
+    def forward(self, x):
+        x = self.semantic_compression(x)
+        x = self.context_interaction(x)
+        x = self.sentiment_distortion(x)
+        return self.emotion_hotspot(x)  # class logits
+```
+
+The shallow, named structure is an interpretability decision. Replacing an
+opaque 768-dimensional transform with four small, role-labelled stages is
+**designed to improve decomposability** — the learned spline activations can be
+extracted and visualised per stage — but it is not a guarantee of causal
+explanation, and this case study does not claim one. Two extras keep the splines
+honest: grid _adaptation_ moves knots and radial centres to the data quantiles
+during training, and optional grid _refinement_ grows spline resolution
+mid-training (e.g. `--grid-refine "40:8,80:12"`). Because the thin-plate kernel
+is unbounded, the expert is trained with gradient clipping.
+
+## Structural Expert — XGBoost
+
+XGBoost is the counterweight: a strong learner over heterogeneous, engineered
+features whose meanings are known in advance. It was chosen because tree
+ensembles model nonlinear interactions between mixed-scale features without
+feature scaling, are a strong baseline on tabular inputs, and support
+straightforward feature-importance and SHAP analysis. That is a fit for _this_
+feature set — not a claim that trees dominate tabular problems in general.
+
+The extractor turns each tweet into a fixed-width vector of 50 interpretable
+signals, grouped by what they capture:
+
+- **Negation** — negation-cue counts and ratios, plus spaCy dependency-parse
+  negation relations (`dep_neg_count`).
+- **Intensity** — weighted intensifier/downtoner scores, ALL-CAPS frequency and
+  ratio, and punctuation counts (exclamation, question, ellipsis) and density.
+- **Emoji & lexical sentiment** — emoji and emoticon polarity sums and density,
+  VADER sentence scores (compound / pos / neg / neu), elongation-aware lexicon
+  hit ratios ("goooood" resolves to "good"), and VADER polarity over camel-split
+  hashtag tokens (`#FollowFriday` → "follow friday").
+- **Linguistic structure** — universal POS-tag distribution, dependency-parse
+  statistics (amod/advmod relation counts, max and mean tree depth), and a
+  subjectivity ratio.
+- **Writing style** — stretched-word ("sooooo") counts and a sarcasm heuristic
+  that includes scare-quote usage next to positive sentiment.
+
+Every group degrades gracefully: if spaCy or a lexicon is unavailable the
+columns are zero-filled rather than dropped, so the feature width is stable
+across machines. Hyperparameters were tuned with Optuna against validation
+macro-F1:
+
+```yaml title="conf/model/kan_xgboost.yaml" showLineNumbers
+kan:
+  hidden_dims: [256, 128, 64] # widths of the three hidden spline layers
+  grid_size: 5 # B-spline intervals / radial-centre count
+  spline_order: 3 # B-spline polynomial degree (radial layers ignore it)
+  grid_range: [-2.0, 2.0] # re-placed at data quantiles during training
+
+xgboost:
+  n_estimators: 750
+  max_depth: 7
+  learning_rate: 0.2486 # best Optuna trial (validation macro-F1)
+  subsample: 0.9352
+  colsample_bytree: 0.7256
+
+fusion:
+  hidden_dim: 64
+  dropout: 0.2
+```
+
+## Adaptive Fusion
+
+The gate is a small MLP — `Linear → LayerNorm → ReLU → Dropout → Linear →
+Sigmoid` — that reads meta-features derived from the two experts' outputs
+(confidences, their difference, entropy, and a residual histogram) and emits a
+single per-sample weight `alpha` in `[0, 1]`. `alpha` is the trust placed in the
+KAN; `1 − alpha` goes to XGBoost. Because a mixture of two valid probability
+distributions is itself a valid distribution, the fused output needs no
+renormalisation and the gate can be trained directly on the log of the mixture.
+
+```python title="src/fusion/fusion_model.py" showLineNumbers {3-6,11-13}
+@staticmethod
+def fuse(alpha, kan_probs, xgb_probs):
+    # Convex combination of two distributions -> still a distribution.
+    if alpha.dim() == 1:
+        alpha = alpha.unsqueeze(1)
+    return alpha * kan_probs + (1.0 - alpha) * xgb_probs
+
+
+def fused_cross_entropy(alpha, kan_probs, xgb_probs, labels):
+    fused = FusionGate.fuse(alpha, kan_probs, xgb_probs)
+    log_probs = torch.log(fused.clamp_min(1e-8))
+    return F.nll_loss(log_probs, labels)  # gate trained on the mixture itself
+```
+
+The hypothesis was that different experts win on different examples — the KAN on
+context-dependent meaning, XGBoost on explicit surface cues — so a per-sample
+gate should route to whichever expert is stronger and unlock a gain neither
+reaches alone. A post-fusion uncertainty-aware fallback (thresholds calibrated on
+a held-out split, detector fit on train embeddings to avoid leakage) can further
+route or soften low-confidence, high-disagreement, or out-of-distribution cases.
+
+<Callout type="note">
+  The gate's learned mean `alpha ≈ 0.98`. Read carefully: this does **not** mean
+  the KAN is always right. It means the learned fusion behaviour was dominated
+  by the semantic pathway — the gate leaned on the KAN for almost the entire
+  mixture and gave the structural expert little weight.
+</Callout>
+
+## Experiments & Results
+
+Every model was evaluated on the same held-out split with the same metrics. The
+classical and deep baselines set the bar; the two experts and the fused system
+are the subject of the study.
+
+<BenchmarkTable
+  highlightRow="KAN–XGBoost fusion"
+  columns={["Model", "Accuracy", "Macro-F1", "AUC"]}
+  caption="Test-set metrics. The engineered-feature XGBoost is the structural expert; the TF-IDF XGBoost is a separate baseline. AUC is omitted where a model does not emit calibrated scores."
+  rows={[
+    { Model: "KNN (TF-IDF)", Accuracy: "0.759", "Macro-F1": "0.759", AUC: "—" },
+    {
+      Model: "Random Forest (TF-IDF)",
+      Accuracy: "0.762",
+      "Macro-F1": "0.762",
+      AUC: "—",
+    },
+    {
+      Model: "XGBoost (50 engineered features)",
+      Accuracy: "0.743",
+      "Macro-F1": "0.743",
+      AUC: "0.823",
+    },
+    {
+      Model: "XGBoost (TF-IDF, 30k n-grams)",
+      Accuracy: "0.813",
+      "Macro-F1": "0.813",
+      AUC: "0.894",
+    },
+    {
+      Model: "SVM (TF-IDF, linear)",
+      Accuracy: "0.825",
+      "Macro-F1": "0.825",
+      AUC: "—",
+    },
+    { Model: "BiLSTM-CNN", Accuracy: "0.831", "Macro-F1": "0.831", AUC: "—" },
+    {
+      Model: "KAN (semantic expert)",
+      Accuracy: "0.875",
+      "Macro-F1": "0.875",
+      AUC: "0.947",
+    },
+    {
+      Model: "KAN–XGBoost fusion",
+      Accuracy: "0.875",
+      "Macro-F1": "0.875",
+      AUC: "0.947",
+    },
+  ]}
+/>
+
+The KAN semantic expert is the strongest single model, leading the best
+non-embedding baseline (BiLSTM-CNN) by about 4.4 points. The **AUC of 0.947**
+says the KAN ranks positives above negatives well across thresholds, not just at
+the 0.5 cut. The headline, though, is the last two rows: fusion matches the KAN
+to three decimals.
+
+### Dataset & evaluation
+
+<DatabaseTable
+  name="Sentiment140"
+  columns={[
+    "1.6M tweets",
+    "binary: positive / negative",
+    "80 / 10 / 10 split",
+    "160,000-row test set",
+    "no missing labels",
+  ]}
+/>
+
+Sentiment140 is a distant-supervision corpus: labels come from emoticons present
+at collection time, which is a known source of noise. Text cleaning preserves
+emoji as their own tokens so their polarity survives into the embedding. The
+XGBoost expert and baselines are trained and evaluated on the full split; the KAN
+and fusion stages run on a stratified, class-balanced subsample for CPU-friendly
+training, then evaluate on the held-out test data.
+
+### Reproducibility
+
+The pipeline is configured end-to-end with **Hydra** — every path and
+hyperparameter lives in versioned YAML under `conf/` and any value can be
+overridden or swept from the command line (`python src/train.py -m
+model.xgboost.max_depth=3,5,7`). Requires Python 3.11+; KAN training curves and
+spline evolution are logged to TensorBoard. Data prep, embedding generation, and
+model training are all **offline** stages that write reusable artifacts —
+there is no runtime serving component in this project.
 
 <DiagramPanel
-  title="Serving Sequence"
-  description="A synchronous request can keep the service boundary stable while model work remains an explicit inference capability."
-  caption="The serving path keeps input validation separate from model execution so batch inference can move behind a worker later."
+  title="Training Pipeline (offline)"
+  description="Every stage runs offline and writes reusable artifacts. The two experts train in parallel on the same embedding before the gate and calibration are fit."
+  caption="Data prep, embedding generation, and both experts are cached to disk; only the fusion/calibration stage depends on the experts' saved probabilities."
   expandable
   wide
 >
   <MermaidDiagram
-    accessibleLabel="Sequence diagram showing sentiment inference from client request through validation, preprocessing, model execution, and response persistence."
-    chart={`sequenceDiagram
-  participant Client as Client Application
-  participant API as Sentiment API
-  participant Preprocess as Preprocessing
-  participant Model as Fusion Model
-  participant DB as Prediction Store
-
-Client->>API: POST /v1/sentiment/inference
-API->>API: Validate text and idempotency key
-API->>Preprocess: Normalize and extract features
-Preprocess->>Model: Semantic and structural feature bundle
-Model-->>API: Label, confidence, gate alpha
-API->>DB: Persist versioned prediction
-API-->>Client: Prediction response`}
-/>
-
+    accessibleLabel="Flowchart: dataset to preprocessing to DeBERTa embeddings, splitting into parallel KAN and XGBoost training, then validation, fusion with calibration, and test evaluation."
+    chart={`flowchart TD
+  A[Sentiment140 dataset] --> B[Text cleaning + feature extraction]
+  B --> C[DeBERTa-v3 embeddings]
+  C --> D[KAN semantic expert]
+  B --> E[XGBoost structural expert]
+  D --> F[Validation predictions]
+  E --> F
+  F --> G[Fusion gate + temperature scaling]
+  G --> H[Held-out test evaluation]`}
+  />
 </DiagramPanel>
 
-## Backend Design
-
-The backend interface should make inference an explicit capability with input limits, model versioning, request identifiers, and structured outputs. Application code should not depend on the internals of the model architecture.
-
-A synchronous endpoint is acceptable for short interactive requests, but larger workloads should move to queued batch inference. That keeps the user-facing boundary stable even if feature extraction or model runtime changes.
-
-```python title="src/inference/predict.py" showLineNumbers {2-6}
-result = sentiment_service.predict(
-    text=request.text,
-    model_version="fusion-2026-08",
-    request_id=request.idempotency_key,
-)
+```bash title="Reproduce the ensemble"
+python src/models/xgboost/train.py                 # structural expert (+ probs)
+python scripts/prepare_fusion_inputs.py            # row-aligned fusion inputs
+python src/models/kan/train.py --gradient-clip-norm 1.0 --grid-refine "40:8,80:12"
+python -m src.fusion.trainer                       # gate + calibration + fallback
 ```
 
-## Database Design
+## What Didn't Work
 
-The inference request table exists so retries can be handled deterministically before model execution is repeated.
+The fusion architecture did not produce the improvement it was built to produce.
 
-```sql title="schema.sql" showLineNumbers {1-2}
-CREATE INDEX idx_inference_request_hash_version
-    ON inference_requests (request_hash, model_version);
-```
+<Callout type="warning">
+  Fusion accuracy (0.875) equals the standalone KAN accuracy (0.875). With a
+  mean gate weight of `alpha ≈ 0.98`, the ensemble leaned almost entirely on the
+  semantic expert, and the structural expert's contribution to the final
+  decision was negligible. The two experts were not complementary enough — as
+  combined by this learned gate — to move the number.
+</Callout>
 
-<DatabaseTable
-  name="inference_requests"
-  columns={[
-    "id",
-    "request_hash",
-    "model_version",
-    "status",
-    "created_at",
-    "completed_at",
-  ]}
-  indexes={[
-    {
-      columns: "(request_hash, model_version)",
-      reason:
-        "Allows repeated requests to resolve to the same inference record without tying clients to storage internals.",
-    },
-  ]}
-/>
+This is the most valuable engineering finding in the project, so it is worth
+stating plainly rather than dressing up. A gate that converges to `alpha ≈ 0.98`
+is telling you that, sample by sample, mixing in the weaker structural expert
+rarely helped — either because the KAN was already right, or because when it was
+wrong the structural expert was usually wrong too.
 
-<DatabaseTable
-  name="sentiment_predictions"
-  columns={[
-    "id",
-    "request_id",
-    "label",
-    "confidence",
-    "gate_alpha",
-    "created_at",
-  ]}
-  indexes={[
-    {
-      columns: "(request_id)",
-      reason: "Keeps prediction retrieval attached to the request lifecycle.",
-    },
-  ]}
-/>
-
-## API Design
-
-The API boundary is intentionally small. It exposes model behavior without leaking the internals of the fusion pipeline.
-
-```http title="sentiment.http"
-POST /v1/sentiment/inference HTTP/1.1
-Content-Type: application/json
-
-{
-  "text": "This service makes retries explicit."
-}
-```
-
-<ApiEndpoint
-  method="POST"
-  path="/v1/sentiment/inference"
-  description="Validate input text and return a versioned sentiment prediction."
-/>
-
-<ApiEndpoint
-  method="GET"
-  path="/v1/sentiment/inference/{id}"
-  description="Retrieve an inference result by stable request identifier."
-/>
-
-<ApiEndpoint
-  method="POST"
-  path="/v1/sentiment/batches"
-  description="Create an asynchronous batch inference job for larger workloads."
-/>
-
-## AI / ML Architecture
-
-The model combines semantic representations with structural features. Mean gate alpha is tracked because it describes model behavior, not just score. A high gate alpha means the semantic expert carries most of the final signal.
-
-> The gate heavily favors the semantic KAN expert. Fusion improves only modestly over KAN despite a higher oracle ceiling, which suggests complementarity exists but is not fully exploited.
-
-## Evaluation
+The complementarity suite separates those cases. Its **oracle-ensemble
+accuracy** — the accuracy an _ideal_ gate would reach if it always deferred to
+whichever expert happened to be correct — sits meaningfully above the learned
+fusion, at roughly **0.92**.
 
 <BenchmarkTable
-  columns={["Model", "Accuracy", "Macro F1", "Notes"]}
-  highlightRow="Fusion"
+  highlightRow="Oracle ensemble (diagnostic ceiling)"
+  columns={["Configuration", "Accuracy", "Deployable?"]}
+  caption="Oracle ensemble is NOT a model. It is a diagnostic upper bound that assumes a perfect expert-selection decision, used to measure how much complementarity the learned gate left on the table."
   rows={[
     {
-      Model: "XGBoost",
-      Accuracy: "0.743",
-      "Macro F1": "0.742",
-      Notes: "Structural baseline",
+      Configuration: "KAN (semantic expert)",
+      Accuracy: "0.875",
+      "Deployable?": "yes",
     },
     {
-      Model: "KAN",
-      Accuracy: "0.8724",
-      "Macro F1": "0.872",
-      Notes: "Semantic baseline",
+      Configuration: "KAN–XGBoost fusion (learned gate)",
+      Accuracy: "0.875",
+      "Deployable?": "yes",
     },
     {
-      Model: "Fusion",
-      Accuracy: "0.8741",
-      "Macro F1": "0.874",
-      Notes: "Hybrid gated model",
+      Configuration: "Oracle ensemble (diagnostic ceiling)",
+      Accuracy: "≈ 0.92",
+      "Deployable?": "no",
     },
   ]}
-  caption="Known project metrics from current portfolio context. No additional benchmark numbers are inferred."
 />
 
-| Metric          |    Value | Meaning                                    |
-| --------------- | -------: | ------------------------------------------ |
-| Test Accuracy   | `0.8741` | Final fusion model classification accuracy |
-| AUC             |  `0.947` | Ranking quality across thresholds          |
-| ECE             | `0.0065` | Expected calibration error                 |
-| Mean Gate Alpha |  `0.924` | Average learned semantic contribution      |
-| Oracle Accuracy |  `0.923` | Upper-bound comparison from known context  |
+The gap between the learned fusion (0.875) and the oracle (≈ 0.92) is the point.
+It shows the experts _do_ contain some complementary information — there is a set
+of tweets XGBoost gets right that the KAN misses — but the learned gate captured
+essentially none of it. This is a diagnosis of the **gating mechanism**, not
+proof that a better ensemble is impossible; it says the failure is in _how trust
+was learned_, not (only) in the experts themselves. It also says nothing beyond
+what the experiment supports: the oracle is an upper bound under perfect
+selection, not an achievable target.
 
-## Performance
+## Calibration & Reliability
 
-The current evidence is model-quality oriented. Service latency, throughput, and batch processing benchmarks should be measured only after the serving path is implemented behind a stable API boundary.
+Accuracy is only half of a probabilistic classifier's job; the other half is
+whether its confidence means anything. Calibration is measured with **expected
+calibration error (ECE)** — the average gap between confidence and actual
+accuracy across confidence bins.
 
-## Reliability
-
-<FailureMode
-  title="Model Timeout"
-  failure="The inference worker exceeds the request budget for unusually long input."
-  behavior="The API returns a bounded error rather than leaving the caller waiting indefinitely."
-  protection="Request timeouts, max input lengths, and an asynchronous batch path protect user-facing flows."
+<BenchmarkTable
+  columns={["Metric", "Value", "What it measures"]}
+  caption="Final fused-model metrics on the held-out test split."
+  rows={[
+    {
+      Metric: "Test Accuracy",
+      Value: "0.875",
+      "What it measures": "Correct label rate at the 0.5 threshold.",
+    },
+    {
+      Metric: "Macro F1",
+      Value: "0.875",
+      "What it measures": "Class-balanced precision/recall.",
+    },
+    {
+      Metric: "AUC",
+      Value: "0.947",
+      "What it measures": "Threshold-independent ranking quality.",
+    },
+    {
+      Metric: "ECE",
+      Value: "0.0065",
+      "What it measures": "Gap between confidence and accuracy.",
+    },
+  ]}
 />
 
-<FailureMode
-  title="Duplicate Request"
-  failure="A client retries after losing the response from a completed inference."
-  behavior="The same request hash and model version can resolve to the existing prediction."
-  protection="Idempotent request keys avoid duplicate database effects and make retries predictable."
-/>
+Calibration is applied with **per-expert temperature scaling**: a single scalar
+`T` per expert, fit by minimising negative log-likelihood on a held-out split —
+never on the test set. Temperature scaling is monotonic, so it never changes an
+expert's hard predictions; it only re-scales confidence, which both feeds the
+gate honest signals and shifts the confidence-weighted mixture. The resulting
+**ECE of 0.0065** means the fused confidences track observed accuracy closely.
+That is a good number for this setup, not a claim of perfect calibration —
+in-distribution reliability does not imply the same on other domains.
 
-## Security
+## Interpretability
 
-The serving boundary should validate input size, reject malformed payloads, avoid logging raw sensitive text by default, and expose model metadata without leaking training artifacts.
+Interpretability here is **architectural and decompositional**, and the project
+is careful not to overstate it.
 
-## Deployment
+- **Named semantic stages.** The KAN's four role-named layers, and the ability
+  to extract and visualise each layer's learned spline activations, make the
+  semantic pathway more decomposable than a single dense transform.
+- **Meaningful structural features.** Every XGBoost input has a known meaning —
+  negation, emoji polarity, intensification, subjectivity — so `TreeExplainer`
+  gives _exact_ Shapley attributions over inspectable quantities, not latent
+  dimensions.
+- **An explainable gate.** SHAP on the gate showed its trust `alpha` is driven
+  mainly by expert confidence, the confidence difference, and entropy — which is
+  consistent with a gate that mostly follows the more confident expert.
 
-The deployment design should separate the application API from the model runtime so CPU-bound or GPU-bound inference can scale independently when real traffic data justifies it.
+None of this is a causal explanation of _why a tweet is positive_. Decomposition
+makes the model easier to reason about; it does not certify the reasoning.
 
-## Observability
+## Tradeoffs & Limitations
 
-- Track request volume, latency buckets, timeout rate, and model version.
-- Record confidence and calibration-oriented aggregate metrics without storing unnecessary raw text.
-- Separate application failures from model-quality drift.
+Each major decision bought something and cost something.
 
-## Engineering Decisions
+| Decision                  | Benefit                                               | Cost                                                           |
+| ------------------------- | ----------------------------------------------------- | -------------------------------------------------------------- |
+| DeBERTa-v3 embeddings     | Rich contextual representation shared by both experts | High-dimensional, opaque input                                 |
+| KAN semantic expert       | Strong accuracy; more decomposable than a dense MLP   | Extra complexity; unbounded TPS kernel needs gradient clipping |
+| XGBoost structural expert | Strong tabular learner over inspectable features      | Feature-engineering overhead for little final-decision weight  |
+| Learned fusion gate       | Adaptive per-sample expert weighting                  | Added machinery with no measurable accuracy gain here          |
 
 <EngineeringDecision
-  id="ADR-001"
-  title="Use a fusion boundary instead of choosing one model family"
-  context="Semantic and structural features carry different signals, and the project goal is to evaluate how they complement each other."
+  id="ADR-01"
+  title="Parallel experts over one joint model"
+  context="Contextual meaning and explicit surface structure are different views of a tweet, and the study needed to measure each view's contribution separately."
   options={[
-    "Use only transformer embeddings",
-    "Use only structural features",
-    "Learn a fusion layer across both signals",
+    "Single model on concatenated inputs",
+    "Two strictly separated experts",
   ]}
-  decision="Use a learned fusion mechanism and report quality metrics alongside gate behavior."
+  decision="Keep a semantic expert (embeddings only) and a structural expert (engineered features only) fully independent, meeting only at a decision-level gate."
   tradeoffs={[
-    "The hybrid design is more complex to explain and serve.",
-    "It creates a clearer evaluation story for feature contribution and calibration.",
+    "Enables clean per-pathway evaluation and the oracle/complementarity diagnostics.",
+    "Forgoes any low-level feature interaction the two views might share inside a single model.",
   ]}
 />
-
-## Limitations
 
 <Limitations
   items={[
-    "Production latency and throughput have not been measured yet.",
-    "The current results should be interpreted within the known evaluation setup, not generalized to every sentiment domain.",
-    "Calibration and error analysis need deeper slices before deployment claims would be credible.",
+    "The learned fusion gain over the strongest single expert is effectively zero on this dataset.",
+    "The gate converges to alpha ≈ 0.98, so the structural expert barely influences the final decision.",
+    "The experts may not carry enough complementary information for this fusion mechanism to exploit; the oracle gap is a ceiling, not a promise.",
+    "Sentiment140 labels are distant-supervision (emoticon-derived) and noisy, and Twitter language is domain-specific — results may not transfer to other corpora.",
+    "Interpretability is decompositional, not causal.",
+    "Concrete per-example error tables are not yet part of the committed results; the failure categories below are prioritised hypotheses, not measured breakdowns.",
   ]}
 />
 
-## What I Would Change
+<ErrorAnalysisList
+  items={[
+    {
+      type: "Sarcasm & irony",
+      observation: "Expected to be a large error source on tweets.",
+      likelyCause:
+        "Surface cues and contextual meaning disagree; scare-quote heuristics only partially capture it.",
+      possibleImprovement:
+        "A targeted sarcasm-labelled evaluation slice to quantify the gap.",
+    },
+    {
+      type: "Negation scope",
+      observation:
+        "Long-range negation can flip meaning past what local cues capture.",
+      likelyCause:
+        "Dependency features capture some structure but not all scope.",
+      possibleImprovement: "Per-slice accuracy on negation-heavy examples.",
+    },
+    {
+      type: "Mixed / emoji-dependent",
+      observation:
+        "Tweets whose polarity hinges on emoji or holds both sentiments.",
+      likelyCause:
+        "Sentiment140's 2009 corpus is emoji-sparse, so this is under-tested here.",
+      possibleImprovement: "Evaluate on a modern, emoji-rich sentiment set.",
+    },
+  ]}
+/>
 
-If redesigning this system today, I would separate embedding generation from synchronous request handling earlier and make model evaluation artifacts first-class outputs of the pipeline.
+## Next Iteration
+
+The oracle gap points the follow-up work at the _gate_, not just the experts:
+
+1. **Increase expert complementarity** rather than raw expert strength — a
+   stronger KAN alone widens the fusion's irrelevance.
+2. **Change the fusion objective** to reward disagreement resolution, not just
+   fused likelihood.
+3. **Train the gate against expert disagreement** so it is optimised on the
+   samples where the choice actually matters.
+4. **Add uncertainty-aware gating** that leans on the fallback signals
+   (entropy, OOD score) during training, not only at inference.
+5. **Analyse per-class and per-category expert wins** to see where XGBoost
+   genuinely rescues the KAN.
+6. **Test whether structural features add unique information** at all, via an
+   ablation of the engineered feature set.
+7. **Evaluate across additional sentiment datasets** to check domain transfer.
+8. **Compare against full DeBERTa fine-tuning** as a stronger upper baseline.
+
+## What I Learned
+
+- A strong single expert can make fusion pointless: if one model already
+  captures most of the signal, a gate has little left to gain.
+- **Complementarity matters more than model diversity.** Two very different
+  architectures are not automatically complementary where it counts.
+- **Oracle-vs-learned fusion is a sharp diagnostic.** The gap between them
+  localised the failure to the gating mechanism, which no single accuracy number
+  would have revealed.
+- **Calibration deserves its own evaluation.** ECE, measured and improved
+  separately from accuracy, is what makes the confidences usable.
+- **Interpretability has to be designed into the representation** — named stages
+  and meaningful features — not recovered afterwards, and even then it is
+  decomposition, not causation.
+
+A negative fusion result, measured honestly and explained with the right
+diagnostics, is a more useful engineering artifact than a hybrid that "wins" for
+reasons no one can name.
+
+---
+
+**[View source on GitHub →](https://github.com/chetancrs7/kan_xgboost_sentiment)** · Explore more engineering work on the [Work index →](/work).

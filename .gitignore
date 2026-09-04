@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Local reference material (source project for the flagship case study; not part of the site)
+.codex-source-kan-xgboost/
+
 # Next.js
 .next/
 out/

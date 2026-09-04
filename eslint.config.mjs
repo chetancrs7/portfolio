@@ -7,6 +7,7 @@ const eslintConfig = [
   {
     ignores: [
       ".next/**",
+      ".codex-source-kan-xgboost/**",
       "next-env.d.ts",
       "node_modules/**",
       "out/**",
