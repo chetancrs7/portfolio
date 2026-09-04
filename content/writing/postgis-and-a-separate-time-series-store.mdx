@@ -1,0 +1,77 @@
+Location data quietly breaks the "just use Postgres for everything" instinct — not because Postgres can't hold coordinates, but because a hiker's position is two different problems wearing the same shape. Designing the backend for an [IoT hiker-tracking platform](/work/iot-hiker-tracking-platform), I chose to split current spatial state from historical telemetry across two stores. This is the reasoning, and — because it is a real tradeoff — the cost.
+
+<Callout type="note">
+  This is a design decision from a system-design study, not a claim about a
+  deployed system. The point is the reasoning behind the split, which holds
+  whether or not the second store is stood up on day one.
+</Callout>
+
+## The shape of location data
+
+A tracking backend has to answer two very different kinds of question:
+
+- **"Where is this hiker _now_, and what is it near?"** — a spatial, transactional question about current state. Is this point inside a geofence? Which hikers are within 500 m of a rescue point?
+- **"Where has this hiker _been_?"** — a temporal question over a high-frequency, append-only stream. Show me the last hour of positions; downsample the day's track.
+
+The first is about geometry and consistency. The second is about volume and time. Forcing both through one general-purpose table means one of them is always being served by the wrong tool.
+
+## Why not just one database
+
+You _can_ store everything in PostgreSQL. The question is what it costs. A single `locations` table taking every update at high frequency has to serve two masters: it is simultaneously the source of truth for "current position" (read constantly by spatial queries) and an ever-growing append log (written constantly by every device). Those workloads compete — write amplification on the hot table, index bloat, and retention logic bolted onto a relational schema that was not designed for time-bucketed reads.
+
+<KeyInsight>
+  The decision isn't "which database is better." It's "these are two workloads."
+  Current spatial state wants geometry, indexes, and transactions; position
+  history wants cheap high-rate appends and time-windowed reads. Matching each
+  workload to a store built for it is usually clearer than making one store do
+  both jobs adequately.
+</KeyInsight>
+
+## PostGIS for current spatial state
+
+For the transactional core, PostgreSQL with the **PostGIS** extension is the fit, for three reasons that all apply at once:
+
+- The domain is **relational** — users own hikers, trails define zones — and benefits from real foreign keys and transactions, which matter for safety events.
+- PostGIS makes coordinates **geometry**, not two float columns, so "is this point in this polygon?" and "who is within range?" become database operations via `ST_Contains` / `ST_DWithin` rather than application-side loops.
+- A **GiST index** on the geometry column lets the planner prune candidates by bounding box before running exact geometry math — the difference between a spatial query that scales and one that does not.
+
+That last point is the one people skip. Spatial predicates without a spatial index degrade to a full scan; the index is what makes PostGIS worth choosing over storing raw lat/long.
+
+## InfluxDB for the position stream
+
+Position history is a different animal: high-frequency, append-only, time-ordered, and almost always queried by time window. That is the textbook description of a **time-series** workload, and a dedicated time-series store handles it with first-class retention policies and time-bucketed aggregation instead of hand-rolled partitioning.
+
+Keeping the telemetry stream out of the transactional database also protects the part of the system that has to stay responsive. The spatial queries that answer "where is everyone right now" should not compete for write throughput with millions of historical points.
+
+<BenchmarkTable
+  columns={["Concern", "Store", "Why"]}
+  caption="Splitting by workload, not by data type."
+  rows={[
+    {
+      Concern: "Current position + geometry",
+      Store: "PostgreSQL + PostGIS",
+      Why: "Relational integrity, spatial predicates, GiST-indexed queries.",
+    },
+    {
+      Concern: "Position history / telemetry",
+      Store: "InfluxDB",
+      Why: "High-rate appends, time-window reads, native retention.",
+    },
+  ]}
+/>
+
+## The cost of two stores
+
+This is not free, and pretending otherwise would be the mistake. Two datastores means:
+
+- **More operational surface** — two systems to run, back up, and monitor.
+- **A consistency boundary** — the current position in PostGIS and the latest telemetry point in InfluxDB can momentarily disagree, so the write path has to be explicit about which store is the source of truth for what.
+- **More moving parts in local dev** — which is exactly why the design targets a single Docker Compose stack, so the whole thing still comes up with one command.
+
+A split you cannot operate is worse than a single store you can. The justification has to be that the workloads are genuinely different, not that two databases look more sophisticated.
+
+## When one database is the right call
+
+I would _not_ reach for this split at low volume or early in a build. If position updates are infrequent, a single PostGIS table with a sensible retention job is simpler and entirely adequate — and simpler wins until the numbers say otherwise. The two-store design earns its cost only when the telemetry stream is high-rate enough that it would degrade the transactional store, or when time-series reads (tracks, downsampling, dashboards) become a first-class feature.
+
+That is the honest version of the decision: not "always separate your stores," but "separate them when you have two workloads, and be able to name the volume that made it worth the operational cost." For a location system that continuously ingests positions, that threshold is easy to see coming — which is why the design accounts for it up front rather than retrofitting it later.

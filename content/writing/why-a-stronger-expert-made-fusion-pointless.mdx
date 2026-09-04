@@ -1,0 +1,86 @@
+Model fusion is one of those ideas that sounds obviously good. Two models, each strong in a different way, combined by a gate that learns whom to trust per input — surely that beats either one alone. I built exactly that for binary sentiment classification, measured it carefully, and it added **no measurable accuracy** over its stronger component. This is the write-up of why, because the negative result turned out to be more instructive than a win would have been.
+
+The full system is documented in the [Hybrid Sentiment Classification case study](/work/hybrid-sentiment-intelligence-system); this article is about the one finding that mattered most.
+
+## The idea that should have worked
+
+The architecture pairs two deliberately different experts over a shared `DeBERTa-v3-base` embedding:
+
+- a **KAN** (Kolmogorov–Arnold Network) semantic expert that learns nonlinear structure directly from the embedding, and
+- an **XGBoost** structural expert over 50 engineered linguistic features — negation, intensifiers, emoji polarity, VADER, dependency-parse cues.
+
+A small gating network reads both experts' outputs and emits a per-sample weight `α`, so the final prediction is a convex combination:
+
+```text
+P_final = α · P_kan + (1 − α) · P_xgb
+```
+
+The hypothesis was standard mixture-of-experts reasoning: the KAN should win on context-dependent meaning, XGBoost on explicit surface cues, and the gate should route to whichever is stronger for each tweet — unlocking accuracy neither reaches alone.
+
+## What actually happened
+
+On the held-out Sentiment140 test split, the two experts were far apart, and the fusion matched the stronger one to three decimals.
+
+<BenchmarkTable
+  highlightRow="KAN–XGBoost fusion"
+  columns={["Model", "Accuracy", "Macro-F1", "AUC"]}
+  caption="Test-set metrics. The learned fusion equals its strongest single expert."
+  rows={[
+    {
+      Model: "XGBoost (structural expert)",
+      Accuracy: "0.743",
+      "Macro-F1": "0.743",
+      AUC: "0.823",
+    },
+    {
+      Model: "KAN (semantic expert)",
+      Accuracy: "0.875",
+      "Macro-F1": "0.875",
+      AUC: "0.947",
+    },
+    {
+      Model: "KAN–XGBoost fusion",
+      Accuracy: "0.875",
+      "Macro-F1": "0.875",
+      AUC: "0.947",
+    },
+  ]}
+/>
+
+The fusion did not beat the KAN. It reproduced it. Whatever the gate learned, it was not extracting value from the structural expert.
+
+## Why the gate ignored the second model
+
+The gate told the whole story in one number: its learned weight averaged **`α ≈ 0.98`**. In other words, across the test set it assigned almost all of the mixture to the KAN and almost none to XGBoost.
+
+That is not proof the KAN is always right. It means that, sample by sample, mixing in the weaker expert rarely helped — either the KAN was already correct, or when it was wrong, XGBoost was usually wrong too. A gate trained to maximise fused likelihood correctly discovered that the safest policy was "mostly defer to the strong model."
+
+<KeyInsight>
+  A gate can only exploit disagreement that is *useful*. When one expert is much
+  stronger and their errors overlap, the optimal learned policy is to nearly
+  ignore the weaker expert — which makes the fusion machinery, and its added
+  complexity, close to free-riding on the strong model.
+</KeyInsight>
+
+## The oracle bound: complementarity was there
+
+Here is the part that keeps the result honest. The codebase computes an **oracle-ensemble accuracy** — the accuracy an _ideal_ gate would reach if it always deferred to whichever expert happened to be correct. That bound sits around **0.92**, meaningfully above the learned fusion at 0.875.
+
+So the two experts _do_ contain complementary information: there is a set of tweets XGBoost gets right that the KAN misses. The failure was not that the experts were redundant. The failure was that the **learned gate captured almost none of that headroom**. The gap between 0.875 (learned) and ~0.92 (oracle) is a direct measurement of how much the gating mechanism left on the table.
+
+This distinction matters because it points the fix at the _gate_, not the experts. Making the KAN even stronger would only widen its dominance; the interesting work is teaching the gate to act on disagreement, which is exactly where the oracle says the value is.
+
+## Calibration is a separate win
+
+One thing the fusion stack did do well was calibration. After per-expert temperature scaling — a single scalar per expert, fit on a held-out split, never on test — the fused model reached an **expected calibration error of 0.0065**. Temperature scaling is monotonic, so it never changed a hard prediction; it only made the confidences trustworthy.
+
+That is worth stating on its own because accuracy and calibration are different properties. The fusion added nothing to accuracy, but the system still produces probabilities that track observed correctness closely. A classifier that is right 87.5% of the time _and_ whose confidence means something is more useful than the accuracy number alone suggests.
+
+## The lesson
+
+- **Complementarity matters more than diversity.** Two very different architectures are not automatically complementary where it counts. If their errors overlap, a gate has little to work with.
+- **A strong single model can make fusion pointless.** The stronger your best expert, the less a convex combination can add — and the more the gate will simply learn to defer to it.
+- **Oracle-vs-learned is the sharpest diagnostic I have.** The gap between them localised the failure to the gating mechanism. No single accuracy number would have revealed that the headroom existed but went unused.
+- **Evaluate calibration separately from accuracy.** They can move independently, and confidence quality is what makes predictions usable downstream.
+
+A fusion that "wins" for reasons nobody can name is a worse engineering artifact than a negative result you can explain. This one I can explain, and it changed how I would approach the next ensemble: optimise the gate against expert disagreement, or don't add the second model at all.

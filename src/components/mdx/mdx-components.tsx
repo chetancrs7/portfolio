@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ExternalLink, Info, LinkIcon, TriangleAlert } from "lucide-react";
+import {
+  ExternalLink,
+  Info,
+  Lightbulb,
+  LinkIcon,
+  TriangleAlert,
+} from "lucide-react";
 import type { MDXComponents } from "mdx/types";
 import type * as React from "react";
 
@@ -88,9 +94,11 @@ export function usePortfolioMDXComponents(
     FailureModeList,
     Figure,
     HybridSentimentArchitecture,
+    KeyInsight,
     Limitations,
     LimitationList,
     MermaidDiagram,
+    Metric,
     Tradeoff,
     TradeoffComparison,
     WideContent,
@@ -398,6 +406,52 @@ export function Figure({
   );
 
   return wide ? <WideContent>{content}</WideContent> : content;
+}
+
+export function KeyInsight({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement>) {
+  return (
+    <aside
+      className={cn(
+        "border-accent-violet/25 bg-accent-violet/6 my-7 rounded-xl border p-5",
+        className,
+      )}
+      {...props}
+    >
+      <p className="type-mono text-accent-violet flex items-center gap-2 uppercase">
+        <Lightbulb aria-hidden="true" className="size-3.5" />
+        Key insight
+      </p>
+      <div className="text-foreground mt-3 text-sm leading-6">{children}</div>
+    </aside>
+  );
+}
+
+export function Metric({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string;
+  description?: string;
+}) {
+  return (
+    <span className="border-border bg-card/45 my-1 inline-flex flex-col rounded-lg border px-4 py-3 align-top">
+      <span className="type-mono text-foreground text-xl">{value}</span>
+      <span className="type-mono text-muted-foreground mt-1 uppercase">
+        {label}
+      </span>
+      {description ? (
+        <span className="text-muted-foreground mt-1 text-xs leading-5">
+          {description}
+        </span>
+      ) : null}
+    </span>
+  );
 }
 
 const calloutClasses: Record<NonNullable<CalloutProps["type"]>, string> = {
