@@ -12,7 +12,11 @@ export {
   workTypeIconNames,
   workTypeLabels,
 } from "./labels";
-export { workAreaFilters, workTypeFilters } from "./filters";
+export {
+  workAreaDescriptions,
+  workAreaFilters,
+  workTypeFilters,
+} from "./filters";
 export { caseStudyTemplates, getCaseStudyTemplate } from "./templates";
 export {
   technicalAreaSchema,

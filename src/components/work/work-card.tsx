@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 
 import { FlagshipBorderBeam } from "@/components/design/flagship-border-beam";
 import { Badge } from "@/components/ui/badge";
@@ -133,16 +133,39 @@ export function WorkCard({
           </div>
         ) : null}
 
-        <Link
-          className="text-foreground hover:text-accent-cyan focus-visible:ring-ring/45 mt-7 inline-flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors outline-none focus-visible:ring-3"
-          href={getWorkHref(item)}
-        >
-          Explore
-          <ArrowRight
-            aria-hidden="true"
-            className="size-4 transition-transform group-hover/card:translate-x-1"
-          />
-        </Link>
+        <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3">
+          <Link
+            className="text-foreground hover:text-accent-cyan focus-visible:ring-ring/45 inline-flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors outline-none focus-visible:ring-3"
+            href={getWorkHref(item)}
+          >
+            {item.contentPath ? "Read case study" : "View project"}
+            <ArrowRight
+              aria-hidden="true"
+              className="size-4 transition-transform group-hover/card:translate-x-1"
+            />
+          </Link>
+          {item.repository ? (
+            <a
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/45 inline-flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors outline-none focus-visible:ring-3"
+              href={item.repository}
+              rel="noreferrer"
+              target="_blank"
+            >
+              GitHub
+              <ExternalLink aria-hidden="true" className="size-3.5" />
+            </a>
+          ) : null}
+          {item.demo ? (
+            <a
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/45 inline-flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors outline-none focus-visible:ring-3"
+              href={item.demo}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Live demo
+            </a>
+          ) : null}
+        </div>
       </CardContent>
     </Card>
   );

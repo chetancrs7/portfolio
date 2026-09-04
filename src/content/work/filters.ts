@@ -8,6 +8,22 @@ export type WorkTypeFilter = {
 export type WorkAreaFilter = {
   area: TechnicalArea;
   label: string;
+  description?: string;
+};
+
+export const workAreaDescriptions: Partial<Record<TechnicalArea, string>> = {
+  backend: "APIs, services, databases, and application infrastructure.",
+  "ai-ml": "Machine learning systems, NLP experiments, and model engineering.",
+  nlp: "Language modeling, sentiment, and text representation work.",
+  "deep-learning": "Neural architectures, embeddings, and training pipelines.",
+  "model-evaluation":
+    "Metrics, calibration, baselines, and honest benchmarking.",
+  interpretability: "Decomposable models and attribution over predictions.",
+  "distributed-systems":
+    "Event-driven flows, reliability, and service boundaries.",
+  databases: "Relational, spatial, and time-series data modeling.",
+  infrastructure: "Containerization, orchestration, and deployment topology.",
+  retrieval: "Vector search, embeddings, and retrieval-quality tradeoffs.",
 };
 
 export const workTypeFilters: WorkTypeFilter[] = [

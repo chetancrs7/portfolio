@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { WorkSearch } from "@/components/work/work-search";
 import {
+  workAreaDescriptions,
   workAreaFilters,
   workTypeFilters,
   type TechnicalArea,
@@ -10,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 type WorkFiltersProps = {
   activeArea?: TechnicalArea;
+  activeQuery?: string;
   activeType?: WorkType;
   resultCount: number;
   totalCount: number;
@@ -17,9 +20,11 @@ type WorkFiltersProps = {
 
 function createFilterHref({
   area,
+  query,
   type,
 }: {
   area?: TechnicalArea;
+  query?: string;
   type?: WorkType;
 }) {
   const params = new URLSearchParams();
@@ -32,9 +37,13 @@ function createFilterHref({
     params.set("area", area);
   }
 
-  const query = params.toString();
+  if (query) {
+    params.set("q", query);
+  }
 
-  return query ? `/work?${query}` : "/work";
+  const query_ = params.toString();
+
+  return query_ ? `/work?${query_}` : "/work";
 }
 
 function filterClassName(active: boolean) {
@@ -48,15 +57,21 @@ function filterClassName(active: boolean) {
 
 export function WorkFilters({
   activeArea,
+  activeQuery,
   activeType,
   resultCount,
   totalCount,
 }: WorkFiltersProps) {
-  const hasActiveFilters = Boolean(activeArea || activeType);
+  const hasActiveFilters = Boolean(activeArea || activeType || activeQuery);
+  const activeAreaDescription = activeArea
+    ? workAreaDescriptions[activeArea]
+    : undefined;
 
   return (
     <div className="border-border bg-card rounded-2xl border p-4 sm:p-5">
       <div className="flex flex-col gap-5">
+        <WorkSearch />
+
         <div>
           <div className="mb-3 flex items-center justify-between gap-4">
             <p className="type-label text-muted-foreground">Type</p>
@@ -78,7 +93,11 @@ export function WorkFilters({
                 <Link
                   aria-current={active ? "page" : undefined}
                   className={filterClassName(active)}
-                  href={createFilterHref({ area: activeArea, type })}
+                  href={createFilterHref({
+                    area: activeArea,
+                    query: activeQuery,
+                    type,
+                  })}
                   key={filter.type}
                 >
                   {active ? (
@@ -106,6 +125,7 @@ export function WorkFilters({
               const active = activeArea === filter.area;
               const href = createFilterHref({
                 area: active ? undefined : filter.area,
+                query: activeQuery,
                 type: activeType,
               });
 
@@ -127,6 +147,11 @@ export function WorkFilters({
               );
             })}
           </div>
+          {activeAreaDescription ? (
+            <p className="text-muted-foreground mt-3 text-sm leading-6">
+              {activeAreaDescription}
+            </p>
+          ) : null}
         </div>
       </div>
     </div>

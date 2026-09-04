@@ -6,6 +6,7 @@ import type { TechnicalArea, WorkItem, WorkType } from "@/content/work";
 
 type WorkExplorerProps = {
   activeArea?: TechnicalArea;
+  activeQuery?: string;
   activeType?: WorkType;
   items: WorkItem[];
   totalCount: number;
@@ -13,6 +14,7 @@ type WorkExplorerProps = {
 
 export function WorkExplorer({
   activeArea,
+  activeQuery,
   activeType,
   items,
   totalCount,
@@ -30,6 +32,7 @@ export function WorkExplorer({
           </div>
           <WorkFilters
             activeArea={activeArea}
+            activeQuery={activeQuery}
             activeType={activeType}
             resultCount={items.length}
             totalCount={totalCount}
