@@ -11,9 +11,12 @@ export const workTypes = [
 export const technicalAreas = [
   "backend",
   "ai-ml",
+  "deep-learning",
   "distributed-systems",
   "databases",
   "infrastructure",
+  "interpretability",
+  "model-evaluation",
   "retrieval",
   "nlp",
   "observability",

@@ -3,28 +3,45 @@ import type { WorkItemInput } from "./schema";
 export const rawWorkItems = [
   {
     slug: "hybrid-sentiment-intelligence-system",
-    title: "Hybrid Sentiment Intelligence System",
+    title: "Hybrid Sentiment Classification with KAN + XGBoost",
     summary:
-      "A hybrid sentiment classification pipeline combining semantic DeBERTa embeddings with structural XGBoost features through a learned gating mechanism.",
+      "A hybrid sentiment classifier combining spline-based semantic modeling with engineered linguistic features and adaptive decision-level fusion.",
     description:
-      "Representative AI/ML systems work focused on model comparison, feature fusion, and backend-ready sentiment inference boundaries.",
+      "Experimental AI/ML engineering work focused on semantic modeling, feature engineering, calibration, expert fusion, and honest evaluation of a KAN + XGBoost sentiment system.",
     type: "project",
-    status: "active",
-    areas: ["ai-ml", "nlp", "backend"],
-    technologies: ["Python", "DeBERTa", "XGBoost", "PyTorch"],
+    status: "completed",
+    areas: [
+      "ai-ml",
+      "nlp",
+      "deep-learning",
+      "model-evaluation",
+      "interpretability",
+      "backend",
+    ],
+    technologies: [
+      "Python",
+      "PyTorch",
+      "Transformers",
+      "DeBERTa",
+      "KAN",
+      "XGBoost",
+      "Hydra",
+      "SHAP",
+    ],
     date: "2026-08",
     featured: true,
     priority: 1,
+    repository: "https://github.com/chetancrs7/kan_xgboost_sentiment",
     contentPath: "content/work/hybrid-sentiment-intelligence-system.mdx",
     metrics: [
       {
         label: "Test Accuracy",
-        value: "0.8741",
+        value: "0.875",
         description: "Final fusion model classification accuracy.",
       },
       {
         label: "Macro F1",
-        value: "0.874",
+        value: "0.875",
         description: "Class-balanced F1 score.",
       },
       {
@@ -39,8 +56,9 @@ export const rawWorkItems = [
       },
     ],
     project: {
-      role: "Modeling and backend architecture",
-      outcome: "Structured as a future case study around hybrid model design.",
+      role: "AI/ML engineering, feature engineering, evaluation",
+      outcome:
+        "Evaluated a hybrid KAN + XGBoost sentiment architecture on a 160,000-sample held-out test split.",
     },
   },
   {

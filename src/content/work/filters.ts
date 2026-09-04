@@ -22,6 +22,10 @@ export const workTypeFilters: WorkTypeFilter[] = [
 export const workAreaFilters: WorkAreaFilter[] = [
   { area: "backend", label: "Backend" },
   { area: "ai-ml", label: "AI / ML" },
+  { area: "nlp", label: "NLP" },
+  { area: "deep-learning", label: "Deep Learning" },
+  { area: "model-evaluation", label: "Model Evaluation" },
+  { area: "interpretability", label: "Interpretability" },
   { area: "distributed-systems", label: "Distributed Systems" },
   { area: "databases", label: "Databases" },
   { area: "infrastructure", label: "Infrastructure" },

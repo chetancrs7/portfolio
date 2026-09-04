@@ -11,9 +11,12 @@ export const workTypeLabels: Record<WorkType, string> = {
 export const technicalAreaLabels: Record<TechnicalArea, string> = {
   backend: "Backend",
   "ai-ml": "AI / ML",
+  "deep-learning": "Deep Learning",
   "distributed-systems": "Distributed Systems",
   databases: "Databases",
   infrastructure: "Infrastructure",
+  interpretability: "Interpretability",
+  "model-evaluation": "Model Evaluation",
   retrieval: "Retrieval",
   nlp: "NLP",
   observability: "Observability",
