@@ -1,11 +1,6 @@
-import { RoutePlaceholder } from "@/components/layout/route-placeholder";
+import { redirect } from "next/navigation";
 
+// Experience now lives as a section on the About page.
 export default function ExperiencePage() {
-  return (
-    <RoutePlaceholder
-      description="A structured overview of engineering roles, systems ownership, and technical impact."
-      eyebrow="Experience"
-      title="Experience"
-    />
-  );
+  redirect("/about");
 }

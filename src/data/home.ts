@@ -107,18 +107,18 @@ export const engineeringPrinciples = [
 
 export const experiencePreview = [
   {
-    area: "Backend Engineering",
-    organization: "Organization TBD",
-    period: "Current",
+    area: "Education",
+    organization: "Sunway University · BSc Computer Science",
+    period: "2023 – 2026",
   },
   {
-    area: "AI Research",
-    organization: "Research context TBD",
-    period: "Recent",
+    area: "AI / ML",
+    organization: "KAN + XGBoost sentiment system",
+    period: "2026",
   },
   {
-    area: "Computer Science",
-    organization: "Education details TBD",
-    period: "Timeline TBD",
+    area: "Backend Systems",
+    organization: "IoT Hiker Tracking platform",
+    period: "2026",
   },
 ] as const;

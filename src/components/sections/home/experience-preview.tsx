@@ -19,9 +19,9 @@ export function ExperiencePreview() {
               />
               <Link
                 className={buttonVariants({ className: "mt-8", size: "lg" })}
-                href="/experience"
+                href="/about"
               >
-                View Experience
+                View About
                 <ArrowRight data-icon="inline-end" />
               </Link>
             </div>
