@@ -42,8 +42,18 @@ assertUniqueSlugs(parsedArticles);
 
 export const articles = parsedArticles;
 
+/**
+ * Writing section is currently in "Coming soon" mode — no articles are surfaced.
+ * Flip WRITING_COMING_SOON to false to restore the article registry.
+ */
+const WRITING_COMING_SOON = true;
+
 /** Published = not a draft and not dated in the future. */
 export function getPublishedArticles() {
+  if (WRITING_COMING_SOON) {
+    return [];
+  }
+
   const now = Date.now();
 
   return [...articles]

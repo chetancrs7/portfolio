@@ -1,101 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, PenLine } from "lucide-react";
 
 import { AmbientGlow } from "@/components/design/ambient-glow";
 import { TechnicalGrid } from "@/components/design/technical-grid";
 import { PageContainer } from "@/components/layout/page-container";
-import { SectionHeading } from "@/components/sections/home/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { ArticleCard } from "@/components/writing/article-card";
-import { WritingFilters } from "@/components/writing/writing-filters";
 import { siteConfig } from "@/config/site";
-import {
-  articleCategoryLabels,
-  articleCategorySchema,
-  getAvailableCategories,
-  getFeaturedArticles,
-  getPublishedArticles,
-  type Article,
-} from "@/content/writing";
-import { getArticleReadingTime } from "@/content/writing/mdx";
 
 export const metadata: Metadata = {
-  title: "Writing & Insights",
+  title: "Writing — Coming Soon",
   description:
-    "Notes on backend engineering, AI/ML, systems design, and lessons from building technical projects.",
+    "Notes on backend engineering, AI/ML, and systems design — coming soon.",
   alternates: { canonical: `${siteConfig.url}/writing` },
   openGraph: {
     type: "website",
-    title: `Writing & Insights — ${siteConfig.name}`,
+    title: `Writing — Coming Soon`,
     description:
-      "Notes on backend engineering, AI/ML, systems design, and lessons from building technical projects.",
+      "Notes on backend engineering, AI/ML, and systems design — coming soon.",
     url: `${siteConfig.url}/writing`,
   },
 };
 
-type WritingPageProps = {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
-};
-
-function getSingleParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function parseCategory(value: string | string[] | undefined) {
-  const result = articleCategorySchema.safeParse(getSingleParam(value));
-
-  return result.success ? result.data : undefined;
-}
-
-function matchesQuery(article: Article, query: string) {
-  const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
-
-  if (terms.length === 0) {
-    return true;
-  }
-
-  const haystack = [
-    article.title,
-    article.description,
-    articleCategoryLabels[article.category],
-    ...article.tags,
-  ]
-    .join(" ")
-    .toLowerCase();
-
-  return terms.every((term) => haystack.includes(term));
-}
-
-export default async function WritingPage({ searchParams }: WritingPageProps) {
-  const params = await searchParams;
-  const activeCategory = parseCategory(params?.category);
-  const activeQuery = getSingleParam(params?.q)?.trim() ?? "";
-
-  const published = getPublishedArticles();
-  const featured = getFeaturedArticles().slice(0, 2);
-  const availableCategories = getAvailableCategories();
-  const readingTimes = Object.fromEntries(
-    published.map((article) => [
-      article.slug,
-      getArticleReadingTime(article.slug),
-    ]),
-  );
-
-  const isFiltering = Boolean(activeCategory || activeQuery);
-  const filtered = published.filter((article) => {
-    if (activeCategory && article.category !== activeCategory) {
-      return false;
-    }
-
-    if (activeQuery && !matchesQuery(article, activeQuery)) {
-      return false;
-    }
-
-    return true;
-  });
-
+export default function WritingPage() {
   return (
     <div className="technical-background min-h-screen">
       <section className="border-border relative isolate overflow-hidden border-b">
@@ -109,108 +37,43 @@ export default async function WritingPage({ searchParams }: WritingPageProps) {
               Writing &amp; Insights
             </h1>
             <p className="type-body-lg text-muted-foreground mt-6 max-w-2xl">
-              Notes on backend engineering, AI/ML, systems design, and the
-              lessons that came out of building the projects — including the
-              experiments that did not go as planned.
+              Technical notes on backend engineering, AI/ML systems, and the
+              lessons that come out of building real projects.
             </p>
           </div>
         </PageContainer>
       </section>
 
-      {featured.length > 0 && !isFiltering ? (
-        <section className="section-space">
-          <PageContainer>
-            <SectionHeading
-              description="The pieces with the strongest technical argument or the most useful negative result."
-              eyebrow="Featured"
-              title="Start here."
-            />
-            <div className="mt-10 grid gap-5 lg:grid-cols-2">
-              {featured.map((article) => (
-                <ArticleCard
-                  article={article}
-                  key={article.slug}
-                  readingTime={readingTimes[article.slug]}
-                  variant="featured"
-                />
-              ))}
-            </div>
-          </PageContainer>
-        </section>
-      ) : null}
-
-      <section className="section-space pt-0">
+      <section className="section-space">
         <PageContainer>
-          <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr]">
-            <SectionHeading
-              description="Filter by engineering area or search across titles, tags, and topics."
-              eyebrow="All writing"
-              title="Browse the archive."
-            />
-            <WritingFilters
-              activeCategory={activeCategory}
-              activeQuery={activeQuery}
-              availableCategories={availableCategories}
-              resultCount={filtered.length}
-              totalCount={published.length}
-            />
-          </div>
-
-          <div className="mt-10">
-            {filtered.length > 0 ? (
-              <div className="grid gap-5 lg:grid-cols-2">
-                {filtered.map((article) => (
-                  <ArticleCard
-                    article={article}
-                    key={article.slug}
-                    readingTime={readingTimes[article.slug]}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="surface-subtle rounded-2xl p-8 text-center">
-                <p className="type-h4 text-foreground">
-                  No insights in this view yet.
-                </p>
-                <p className="type-body text-muted-foreground mx-auto mt-3 max-w-md">
-                  Try a different category or clear the search to see all
-                  writing.
-                </p>
-                <Link
-                  className={buttonVariants({
-                    className: "mt-6",
-                    variant: "secondary",
-                  })}
-                  href="/writing"
-                >
-                  View all writing
-                </Link>
-              </div>
-            )}
-          </div>
-        </PageContainer>
-      </section>
-
-      <section className="border-border border-t">
-        <PageContainer className="py-14 sm:py-16">
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="type-eyebrow text-accent-cyan">Next step</p>
-              <h2 className="type-h3 mt-3">
-                Writing explains the projects. The projects are the evidence.
-              </h2>
-              <p className="type-body text-muted-foreground mt-4 max-w-2xl">
-                Each article links to the system it came from — read the
-                engineering behind it.
-              </p>
-            </div>
-            <Link
-              className={buttonVariants({ variant: "secondary" })}
-              href="/projects"
+          <div className="border-border bg-card/55 mx-auto max-w-2xl rounded-2xl border p-10 text-center sm:p-14">
+            <span
+              aria-hidden="true"
+              className="border-border bg-background/60 text-accent-cyan mx-auto flex size-14 items-center justify-center rounded-full border"
             >
-              Explore work
-              <ArrowRight data-icon="inline-end" />
-            </Link>
+              <PenLine className="size-6" />
+            </span>
+            <p className="type-eyebrow text-accent-cyan mt-6">Coming soon</p>
+            <h2 className="type-h2 text-foreground mt-4 text-balance">
+              Articles are on the way.
+            </h2>
+            <p className="type-body text-muted-foreground mx-auto mt-5 max-w-lg">
+              I&rsquo;m preparing a set of technical write-ups on the systems,
+              models, and design decisions behind the projects. Check back soon
+              — or explore the projects in the meantime.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link className={buttonVariants({ size: "sm" })} href="/projects">
+                Explore projects
+                <ArrowRight data-icon="inline-end" />
+              </Link>
+              <Link
+                className={buttonVariants({ size: "sm", variant: "outline" })}
+                href="/contact"
+              >
+                Get in touch
+              </Link>
+            </div>
           </div>
         </PageContainer>
       </section>
