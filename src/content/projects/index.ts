@@ -112,7 +112,7 @@ export function getWorkByArea(area: TechnicalArea) {
 }
 
 export function getWorkHref(item: Pick<WorkItem, "slug">) {
-  return `/work/${item.slug}`;
+  return `/projects/${item.slug}`;
 }
 
 export function getWritingReadingTime(item: Pick<WorkItem, "writing">) {

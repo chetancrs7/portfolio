@@ -1,9 +1,9 @@
 import { siteConfig } from "@/config/site";
 
 export const mainNavigation = [
-  { label: "Work", href: "/work" },
-  { label: "Writing", href: "/writing" },
   { label: "About", href: "/about" },
+  { label: "Projects", href: "/projects" },
+  { label: "Writing", href: "/writing" },
   { label: "Contact", href: "/contact" },
 ] as const;
 

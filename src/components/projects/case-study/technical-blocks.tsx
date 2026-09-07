@@ -8,7 +8,7 @@ import {
   type ErrorAnalysisData,
   type FailureModeData,
   type TradeoffOptionData,
-} from "@/components/work/case-study/types";
+} from "@/components/projects/case-study/types";
 import { cn } from "@/lib/utils";
 import type * as React from "react";
 
@@ -471,3 +471,4 @@ function DecisionRow({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+

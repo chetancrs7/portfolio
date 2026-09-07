@@ -6,13 +6,13 @@ import { ArrowLeft, ExternalLink } from "lucide-react";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { CaseStudyHeader } from "@/components/work/case-study/case-study-header";
-import { CaseStudyNavigation } from "@/components/work/case-study/case-study-navigation";
-import { CaseStudyToc } from "@/components/work/case-study/case-study-toc";
-import { MetricStrip } from "@/components/work/case-study/metric-strip";
-import { RelatedWork } from "@/components/work/case-study/related-work";
-import { RelatedWriting } from "@/components/work/case-study/related-writing";
-import { TechnicalSnapshot } from "@/components/work/case-study/technical-snapshot";
+import { CaseStudyHeader } from "@/components/projects/case-study/case-study-header";
+import { CaseStudyNavigation } from "@/components/projects/case-study/case-study-navigation";
+import { CaseStudyToc } from "@/components/projects/case-study/case-study-toc";
+import { MetricStrip } from "@/components/projects/case-study/metric-strip";
+import { RelatedWork } from "@/components/projects/case-study/related-work";
+import { RelatedWriting } from "@/components/projects/case-study/related-writing";
+import { TechnicalSnapshot } from "@/components/projects/case-study/technical-snapshot";
 import { siteConfig } from "@/config/site";
 import {
   getPublishedWork,
@@ -20,8 +20,8 @@ import {
   getCaseStudyTemplate,
   workTypeLabels,
   type WorkItem,
-} from "@/content/work";
-import { getWorkContent } from "@/content/work/mdx";
+} from "@/content/projects";
+import { getWorkContent } from "@/content/projects/mdx";
 import { getArticlesForProject } from "@/content/writing";
 
 type WorkDetailPageProps = {
@@ -221,7 +221,7 @@ function CaseStudyFallback({ item }: { item: WorkItem }) {
         ) : null}
         <Link
           className={buttonVariants({ size: "sm", variant: "secondary" })}
-          href="/work"
+          href="/projects"
         >
           <ArrowLeft data-icon="inline-start" />
           Back to Work

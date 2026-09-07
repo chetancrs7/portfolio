@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
-import { getWorkHref, type WorkItem } from "@/content/work";
+import { getWorkHref, type WorkItem } from "@/content/projects";
 
 type CaseStudyNavigationProps = {
   next: WorkItem | null;
@@ -56,3 +56,4 @@ function AdjacentLink({
     </Link>
   );
 }
+

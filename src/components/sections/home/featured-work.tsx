@@ -11,7 +11,7 @@ import {
   technicalAreaLabels,
   workTypeLabels,
   type WorkItem,
-} from "@/content/work";
+} from "@/content/projects";
 import { cn } from "@/lib/utils";
 
 export function FeaturedWork() {
@@ -98,7 +98,7 @@ function FeaturedWorkCard({
         </p>
         <Link
           className="text-foreground hover:text-accent-cyan focus-visible:ring-ring/45 mt-7 inline-flex items-center gap-1.5 rounded-full text-sm font-medium transition-colors outline-none focus-visible:ring-3"
-          href="/work"
+          href="/projects"
         >
           Explore
           <ArrowRight
@@ -110,3 +110,4 @@ function FeaturedWorkCard({
     </Card>
   );
 }
+

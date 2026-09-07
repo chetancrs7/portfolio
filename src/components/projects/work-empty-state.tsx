@@ -11,7 +11,7 @@ export function WorkEmptyState() {
       </p>
       <Link
         className={buttonVariants({ className: "mt-6", variant: "secondary" })}
-        href="/work"
+        href="/projects"
       >
         Clear filters
       </Link>

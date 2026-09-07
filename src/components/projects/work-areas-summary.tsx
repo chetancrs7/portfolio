@@ -6,7 +6,7 @@ import {
   technicalAreaLabels,
   workAreaFilters,
   type WorkItem,
-} from "@/content/work";
+} from "@/content/projects";
 
 type WorkAreasSummaryProps = {
   items: WorkItem[];
@@ -31,7 +31,7 @@ export function WorkAreasSummary({ items }: WorkAreasSummaryProps) {
           {areas.map((area) => (
             <Link
               className="bg-background/86 hover:bg-muted/30 focus-visible:ring-ring/45 p-5 transition-colors outline-none focus-visible:ring-3"
-              href={`/work?area=${area.area}`}
+              href={`/projects?area=${area.area}`}
               key={area.area}
             >
               <p className="type-h4">{technicalAreaLabels[area.area]}</p>
@@ -45,3 +45,4 @@ export function WorkAreasSummary({ items }: WorkAreasSummaryProps) {
     </section>
   );
 }
+

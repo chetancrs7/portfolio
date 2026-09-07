@@ -1,5 +1,5 @@
-import { WorkMetric } from "@/components/work/work-metric";
-import type { WorkMetric as WorkMetricValue } from "@/content/work";
+import { WorkMetric } from "@/components/projects/work-metric";
+import type { WorkMetric as WorkMetricValue } from "@/content/projects";
 
 type MetricStripProps = {
   metrics?: WorkMetricValue[];
@@ -21,3 +21,4 @@ export function MetricStrip({ metrics }: MetricStripProps) {
     </section>
   );
 }
+

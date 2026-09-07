@@ -25,7 +25,7 @@ export default function NotFound() {
             </Link>
             <Link
               className={buttonVariants({ variant: "secondary" })}
-              href="/work"
+              href="/projects"
             >
               View work
               <ArrowRight data-icon="inline-end" />

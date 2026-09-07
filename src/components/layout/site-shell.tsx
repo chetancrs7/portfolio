@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { AmbientGlow } from "@/components/design/ambient-glow";
 import { TechnicalGrid } from "@/components/design/technical-grid";
+import { PageTransition } from "@/components/layout/page-transition";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 
@@ -24,7 +25,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
         className="relative z-10 min-h-[calc(100vh-20rem)]"
         id="main-content"
       >
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
       <SiteFooter />
     </div>

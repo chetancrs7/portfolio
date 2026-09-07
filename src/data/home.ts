@@ -6,7 +6,7 @@ export const homeHero = {
     accent: "Intelligent Software.",
   },
   description:
-    "Backend and AI/ML engineer building reliable APIs and services, machine-learning pipelines, and data-intensive applications — with a focus on evaluation, architecture, and honest tradeoffs.",
+    "Backend and AI/ML engineer building reliable APIs and services, machine-learning pipelines, and data-intensive applications.",
   primaryCta: {
     label: "View Work",
     href: "/work",

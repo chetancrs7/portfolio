@@ -8,7 +8,7 @@ import {
   workStatusLabels,
   workTypeLabels,
   type WorkItem,
-} from "@/content/work";
+} from "@/content/projects";
 import { cn } from "@/lib/utils";
 
 type CaseStudyHeaderProps = {
@@ -49,7 +49,7 @@ export function CaseStudyHeader({ item }: CaseStudyHeaderProps) {
           className: "mb-10",
           variant: "secondary",
         })}
-        href="/work"
+        href="/projects"
       >
         <ArrowLeft data-icon="inline-start" />
         All Work
@@ -109,3 +109,4 @@ export function formatWorkDate(date: string) {
     year: "numeric",
   }).format(new Date(`${normalizedDate}T00:00:00Z`));
 }
+

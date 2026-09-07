@@ -1,4 +1,4 @@
-import type { WorkItem } from "@/content/work";
+import type { WorkItem } from "@/content/projects";
 
 import { WorkCard } from "../work-card";
 
@@ -25,3 +25,4 @@ export function RelatedWork({ items }: RelatedWorkProps) {
     </section>
   );
 }
+

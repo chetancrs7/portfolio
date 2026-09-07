@@ -2,7 +2,7 @@ import type * as React from "react";
 import { Maximize2 } from "lucide-react";
 
 import { DiagramExpand } from "@/components/diagrams/diagram-expand";
-import { WideContent } from "@/components/work/case-study/technical-blocks";
+import { WideContent } from "@/components/projects/case-study/technical-blocks";
 import { cn } from "@/lib/utils";
 
 type DiagramPanelProps = {
@@ -65,3 +65,4 @@ export function DiagramPanel({
 
   return wide ? <WideContent>{panel}</WideContent> : panel;
 }
+

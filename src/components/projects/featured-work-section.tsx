@@ -1,7 +1,7 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/sections/home/section-heading";
-import { WorkCard } from "@/components/work/work-card";
-import type { WorkItem } from "@/content/work";
+import { WorkCard } from "@/components/projects/work-card";
+import type { WorkItem } from "@/content/projects";
 
 type FeaturedWorkSectionProps = {
   items: WorkItem[];
@@ -39,3 +39,4 @@ export function FeaturedWorkSection({ items }: FeaturedWorkSectionProps) {
     </section>
   );
 }
+

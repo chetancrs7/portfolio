@@ -1,8 +1,8 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/sections/home/section-heading";
-import { WorkFilters } from "@/components/work/work-filters";
-import { WorkGrid } from "@/components/work/work-grid";
-import type { TechnicalArea, WorkItem, WorkType } from "@/content/work";
+import { WorkFilters } from "@/components/projects/work-filters";
+import { WorkGrid } from "@/components/projects/work-grid";
+import type { TechnicalArea, WorkItem, WorkType } from "@/content/projects";
 
 type WorkExplorerProps = {
   activeArea?: TechnicalArea;
@@ -46,3 +46,4 @@ export function WorkExplorer({
     </section>
   );
 }
+

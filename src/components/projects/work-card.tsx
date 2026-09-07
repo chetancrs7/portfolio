@@ -4,7 +4,7 @@ import { ArrowRight, ExternalLink } from "lucide-react";
 import { FlagshipBorderBeam } from "@/components/design/flagship-border-beam";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WorkMetric } from "@/components/work/work-metric";
+import { WorkMetric } from "@/components/projects/work-metric";
 import {
   getWorkHref,
   getWritingReadingTime,
@@ -12,7 +12,7 @@ import {
   workStatusLabels,
   workTypeLabels,
   type WorkItem,
-} from "@/content/work";
+} from "@/content/projects";
 import { cn } from "@/lib/utils";
 
 type WorkCardProps = {
@@ -170,3 +170,4 @@ export function WorkCard({
     </Card>
   );
 }
+

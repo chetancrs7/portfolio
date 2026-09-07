@@ -1,4 +1,4 @@
-import { getWorkBySlug, type WorkItem } from "@/content/work";
+import { getWorkBySlug, type WorkItem } from "@/content/projects";
 
 import { rawArticles } from "./data";
 import {
@@ -136,3 +136,4 @@ export function getAdjacentArticles(slug: string) {
       index >= 0 && index < published.length - 1 ? published[index + 1] : null,
   };
 }
+

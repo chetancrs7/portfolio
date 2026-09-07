@@ -1,4 +1,4 @@
-import type { WorkItem } from "@/content/work";
+import type { WorkItem } from "@/content/projects";
 
 import { WorkCard } from "./work-card";
 import { WorkEmptyState } from "./work-empty-state";
@@ -20,3 +20,4 @@ export function WorkGrid({ items }: WorkGridProps) {
     </div>
   );
 }
+

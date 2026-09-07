@@ -5,7 +5,7 @@ import {
   workStatusLabels,
   workTypeLabels,
   type WorkItem,
-} from "@/content/work";
+} from "@/content/projects";
 
 import { formatWorkDate } from "./case-study-header";
 
@@ -50,3 +50,4 @@ export function TechnicalSnapshot({ item, role }: TechnicalSnapshotProps) {
     </aside>
   );
 }
+

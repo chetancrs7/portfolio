@@ -5,7 +5,7 @@ import path from "node:path";
 import type { ComponentType } from "react";
 import GithubSlugger from "github-slugger";
 
-import { getAllWork, getPublishedWork, type WorkItem } from "@/content/work";
+import { getAllWork, getPublishedWork, type WorkItem } from "@/content/projects";
 
 export type WorkMdxHeading = {
   depth: 2 | 3;
@@ -189,3 +189,4 @@ function warnAboutMissingContent(slug: string) {
 
   console.warn(`Missing MDX content for published Work item: ${slug}`);
 }
+

@@ -206,7 +206,7 @@ export default async function WritingPage({ searchParams }: WritingPageProps) {
             </div>
             <Link
               className={buttonVariants({ variant: "secondary" })}
-              href="/work"
+              href="/projects"
             >
               Explore work
               <ArrowRight data-icon="inline-end" />

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { siteConfig } from "@/config/site";
-import { getPublishedWork } from "@/content/work";
+import { getPublishedWork } from "@/content/projects";
 import { getPublishedArticles } from "@/content/writing";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -35,3 +35,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [...staticRoutes, ...workRoutes, ...articleRoutes];
 }
+

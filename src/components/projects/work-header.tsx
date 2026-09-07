@@ -2,7 +2,7 @@ import { AmbientGlow } from "@/components/design/ambient-glow";
 import { TechnicalGrid } from "@/components/design/technical-grid";
 import { PageContainer } from "@/components/layout/page-container";
 import { Badge } from "@/components/ui/badge";
-import type { WorkType } from "@/content/work";
+import type { WorkType } from "@/content/projects";
 
 type WorkHeaderProps = {
   counts: Array<{
@@ -56,3 +56,4 @@ export function WorkHeader({ counts, totalCount }: WorkHeaderProps) {
     </section>
   );
 }
+

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import type { WorkMetric as WorkMetricValue } from "@/content/work";
+import type { WorkMetric as WorkMetricValue } from "@/content/projects";
 
 type WorkMetricProps = {
   className?: string;
@@ -23,3 +23,4 @@ export function WorkMetric({ className, metric }: WorkMetricProps) {
     </div>
   );
 }
+

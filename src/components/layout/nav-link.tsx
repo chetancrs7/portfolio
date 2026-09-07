@@ -31,7 +31,7 @@ export function NavLink({
         "group/nav text-muted-foreground hover:text-foreground focus-visible:ring-ring/45 relative rounded-full font-medium transition-colors outline-none focus-visible:ring-3",
         mobile
           ? "flex min-h-11 items-center justify-between px-4 text-base"
-          : "px-3 py-1.5 text-sm",
+          : "px-4 py-2.5 text-base",
         isActive && "bg-muted/65 text-foreground",
         className,
       )}

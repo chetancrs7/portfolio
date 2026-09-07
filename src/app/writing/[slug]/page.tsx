@@ -5,8 +5,8 @@ import { ArrowRight } from "lucide-react";
 
 import { PageContainer } from "@/components/layout/page-container";
 import { buttonVariants } from "@/components/ui/button";
-import { CaseStudyToc } from "@/components/work/case-study/case-study-toc";
-import { RelatedWork } from "@/components/work/case-study/related-work";
+import { CaseStudyToc } from "@/components/projects/case-study/case-study-toc";
+import { RelatedWork } from "@/components/projects/case-study/related-work";
 import { ArticleAuthor } from "@/components/writing/article-author";
 import { ArticleHeader } from "@/components/writing/article-header";
 import { ArticleNav } from "@/components/writing/article-nav";
@@ -142,7 +142,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     className: "mt-5",
                     variant: "secondary",
                   })}
-                  href="/work"
+                  href="/projects"
                 >
                   Explore the projects
                   <ArrowRight data-icon="inline-end" />

@@ -1,13 +1,13 @@
 import Link from "next/link";
 
-import { WorkSearch } from "@/components/work/work-search";
+import { WorkSearch } from "@/components/projects/work-search";
 import {
   workAreaDescriptions,
   workAreaFilters,
   workTypeFilters,
   type TechnicalArea,
   type WorkType,
-} from "@/content/work";
+} from "@/content/projects";
 import { cn } from "@/lib/utils";
 
 type WorkFiltersProps = {
@@ -43,7 +43,7 @@ function createFilterHref({
 
   const query_ = params.toString();
 
-  return query_ ? `/work?${query_}` : "/work";
+  return query_ ? `/projects?${query_}` : "/work";
 }
 
 function filterClassName(active: boolean) {
@@ -78,7 +78,7 @@ export function WorkFilters({
             {hasActiveFilters ? (
               <Link
                 className="text-muted-foreground hover:text-foreground focus-visible:ring-ring/45 rounded-full text-sm transition-colors outline-none focus-visible:ring-3"
-                href="/work"
+                href="/projects"
               >
                 Clear filters
               </Link>
@@ -157,3 +157,4 @@ export function WorkFilters({
     </div>
   );
 }
+

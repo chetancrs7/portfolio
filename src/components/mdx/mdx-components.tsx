@@ -34,7 +34,7 @@ import {
   Tradeoff,
   TradeoffComparison,
   WideContent,
-} from "@/components/work/case-study/technical-blocks";
+} from "@/components/projects/case-study/technical-blocks";
 import { cn } from "@/lib/utils";
 
 type HeadingProps = React.HTMLAttributes<HTMLHeadingElement>;
@@ -460,3 +460,4 @@ const calloutClasses: Record<NonNullable<CalloutProps["type"]>, string> = {
   result: "border-accent-cyan/30 bg-accent-cyan/6",
   warning: "border-destructive/25 bg-destructive/8",
 };
+
