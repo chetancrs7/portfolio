@@ -315,6 +315,105 @@ export const technicalStack: StackGroup[] = [
   },
 ] as const;
 
+export type AchievementEntry = {
+  title: string;
+  issuer: string;
+  date: string;
+  description: string;
+  category: "academic" | "scholarship" | "competition" | "certification" | "creative";
+};
+
+export const achievements: AchievementEntry[] = [
+  {
+    title: "5 × Dean's List Award",
+    issuer: "Sunway University, Malaysia",
+    date: "2023–2026",
+    description:
+      "Awarded for maintaining outstanding academic performance across five consecutive semesters.",
+    category: "academic",
+  },
+  {
+    title: "3 × Jeffrey Cheah Entrance Scholarship",
+    issuer: "Sunway University, Malaysia",
+    date: "2023–2026",
+    description:
+      "Merit-based scholarship awarded for academic excellence upon admission and renewed annually.",
+    category: "scholarship",
+  },
+  {
+    title: "6th in Accounting (AS Level) - National Rank",
+    issuer: "Cambridge Assessment International Education, Mauritius",
+    date: "2022",
+    description:
+      "Ranked 6th nationally in Cambridge AS Level Accounting examinations across Mauritius.",
+    category: "academic",
+  },
+  {
+    title: "80th Overall National Rank",
+    issuer: "Cambridge Assessment International Education, Mauritius",
+    date: "2022",
+    description:
+      "Ranked 80th overall in the Cambridge A-Level examinations across all subjects nationally.",
+    category: "academic",
+  },
+  {
+    title: "Silver in Duke of Edinburgh Award",
+    issuer: "Mauritius",
+    date: "2021",
+    description:
+      "Completed the Silver level, demonstrating commitment to community service, skill development, and physical activity.",
+    category: "certification",
+  },
+  {
+    title: "First Aid Certified",
+    issuer: "Fellowship First Aiders, Mauritius",
+    date: "2019",
+    description:
+      "Certified in emergency first aid response including CPR, wound care, and basic life support.",
+    category: "certification",
+  },
+  {
+    title: "2 × Credit — Australian Mathematics Competition (Intermediate)",
+    issuer: "Australian Mathematics Trust",
+    date: "2018 – 2019",
+    description:
+      "Received Credit distinction in the AMC Intermediate Division for two consecutive years.",
+    category: "competition",
+  },
+  {
+    title: "2 × Distinction — Australian Mathematics Competition (Junior)",
+    issuer: "Australian Mathematics Trust",
+    date: "2016 – 2017",
+    description:
+      "Achieved Distinction in the AMC Junior Division for two consecutive years.",
+    category: "competition",
+  },
+  {
+    title: "Anti-Corruption Poem Award",
+    issuer: "Independent Commission Against Corruption, Mauritius",
+    date: "2014",
+    description:
+      "National award for a creative writing piece addressing anti-corruption themes.",
+    category: "creative",
+  },
+  {
+    title: "Budding Writers Award",
+    issuer: "Ministry of Education & Human Resources, Mauritius",
+    date: "2013",
+    description:
+      "Recognised for creative writing potential in a national young writers competition.",
+    category: "creative",
+  },
+  {
+    title: "InnovEd Award",
+    issuer: "Ministry of Education & Human Resources, Mauritius",
+    date: "2007",
+    description:
+      "Recognized for proposing an innovative, sustainability-focused project aimed at addressing real-world challenges through creative solutions.",
+    category: "creative",
+  },
+];
+
 export const currentDirection = {
   philosophy:
     "I learn by building systems, measuring what works, and investigating why something fails.",
