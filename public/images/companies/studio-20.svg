@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 447 447" width="447" height="447">
+  <title>Studio 20 Logo</title>
+  <desc>Studio 20 logo with a vivid red circular background, cream folder frame, and cream studio 20 lettering.</desc>
+
+  <!-- Circular badge -->
+  <circle cx="223.5" cy="223.5" r="223.5" fill="#ff3030"/>
+
+  <!-- Geometric folder/document frame -->
+  <g fill="none" stroke="#fffbe8" stroke-width="10" stroke-linecap="square" stroke-linejoin="miter">
+    <!-- left edge + top edge with characteristic stepped tab -->
+    <path d="M106 329 V104 H205 L216 119 H320 V141"/>
+    <!-- right upper terminal -->
+    <path d="M320 119 V141"/>
+    <!-- bottom frame with characteristic stepped transition -->
+    <path d="M106 329 H244 L254 343 H320 V315"/>
+    <!-- right lower terminal -->
+    <path d="M320 343 V315"/>
+  </g>
+
+  <!-- Lettering -->
+  <g fill="#fffbe8" font-family="Arial, Helvetica, sans-serif">
+    <text x="137" y="205" font-size="57" font-weight="400" letter-spacing="-1.5">studio</text>
+    <text x="239" y="289" font-size="91" font-weight="700" letter-spacing="-5">20</text>
+  </g>
+</svg>
