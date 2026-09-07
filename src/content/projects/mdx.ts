@@ -23,18 +23,10 @@ type WorkMdxContent = {
 };
 
 const workMdxModules = {
-  "designing-reliable-event-consumers": () =>
-    import("../../../content/work/designing-reliable-event-consumers.mdx"),
-  "distributed-notification-architecture": () =>
-    import("../../../content/work/distributed-notification-architecture.mdx"),
   "hybrid-sentiment-intelligence-system": () =>
     import("../../../content/work/hybrid-sentiment-intelligence-system.mdx"),
   "iot-hiker-tracking-platform": () =>
     import("../../../content/work/iot-hiker-tracking-platform.mdx"),
-  "semantic-structural-sentiment-fusion": () =>
-    import("../../../content/work/semantic-structural-sentiment-fusion.mdx"),
-  "vector-retrieval-benchmark": () =>
-    import("../../../content/work/vector-retrieval-benchmark.mdx"),
 } satisfies Record<string, () => Promise<WorkMdxModule>>;
 
 const contentDirectory = path.join(process.cwd(), "content", "work");

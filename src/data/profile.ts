@@ -34,9 +34,9 @@ export const engineeringFocus: EngineeringFocus[] = [
     evidence: [
       {
         label: "IoT Hiker Tracking",
-        href: "/work/iot-hiker-tracking-platform",
+        href: "/projects/iot-hiker-tracking-platform",
       },
-      { label: "Backend work", href: "/work?area=backend" },
+      { label: "Backend work", href: "/projects?area=backend" },
     ],
   },
   {
@@ -46,7 +46,7 @@ export const engineeringFocus: EngineeringFocus[] = [
     evidence: [
       {
         label: "KAN + XGBoost case study",
-        href: "/work/hybrid-sentiment-intelligence-system",
+        href: "/projects/hybrid-sentiment-intelligence-system",
       },
       {
         label: "On model fusion",
@@ -60,8 +60,8 @@ export const engineeringFocus: EngineeringFocus[] = [
       "System decomposition, data flow, and tradeoffs — separating what is implemented from what is designed.",
     evidence: [
       {
-        label: "Notification design study",
-        href: "/work/distributed-notification-architecture",
+        label: "IoT Hiker Tracking design",
+        href: "/projects/iot-hiker-tracking-platform",
       },
     ],
   },
@@ -133,7 +133,7 @@ export const experience: ExperienceEntry[] = [
     ],
     cta: {
       label: "View project",
-      href: "/work/iot-hiker-tracking-platform",
+      href: "/projects/iot-hiker-tracking-platform",
     },
     accent: "blue",
     icon: "flask",

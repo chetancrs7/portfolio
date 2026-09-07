@@ -104,96 +104,33 @@ export const rawWorkItems = [
     },
   },
   {
-    slug: "distributed-notification-architecture",
-    title: "Distributed Notification Architecture",
+    slug: "personal-portfolio-website",
+    title: "Personal Portfolio Website",
     summary:
-      "A backend architecture study focused on idempotency, retries, queue boundaries, and graceful degradation across asynchronous notification workflows.",
+      "The site you're reading — a Next.js portfolio built with the App Router, MDX case studies, and a design system tuned for technical writing.",
     description:
-      "The item is explicitly modeled as a design study so future detail pages can distinguish assumptions from measured production results.",
-    type: "system-design",
-    status: "design-study",
-    areas: [
-      "backend",
-      "distributed-systems",
-      "infrastructure",
-      "observability",
+      "A full-stack portfolio site engineered as a real project: MDX-driven case studies, a validated Zod-typed content registry, static generation with Next.js 15 App Router, and a dark-first design system with a scroll-aware navigation shell.",
+    type: "project",
+    status: "active",
+    areas: ["backend", "infrastructure"],
+    technologies: [
+      "Next.js 15",
+      "React 19",
+      "TypeScript",
+      "Tailwind CSS",
+      "MDX",
+      "Zod",
+      "Framer Motion",
+      "Vercel",
     ],
-    technologies: ["Kafka", "Redis", "Docker"],
-    date: "2026-06",
-    featured: false,
-    contentPath: "content/work/distributed-notification-architecture.mdx",
-    systemDesign: {
-      designOnly: true,
-      scaleAssumptions: [
-        "Queue depth, retry windows, and delivery fan-out are architecture assumptions, not measured production claims.",
-      ],
-    },
-  },
-  {
-    slug: "semantic-structural-sentiment-fusion",
-    title: "Semantic + Structural Sentiment Fusion",
-    summary:
-      "Research notes for comparing semantic embeddings, classical feature sets, and fusion strategies in sentiment classification workflows.",
-    type: "research",
-    status: "research",
-    areas: ["ai-ml", "nlp"],
-    technologies: ["Python", "DeBERTa", "XGBoost", "PyTorch"],
-    date: "2026-05",
-    featured: false,
-    contentPath: "content/work/semantic-structural-sentiment-fusion.mdx",
-    research: {
-      methodology:
-        "Future MDX should hold the full problem framing, baselines, evaluation, error analysis, and limitations.",
-    },
-  },
-  {
-    slug: "designing-reliable-event-consumers",
-    title: "Designing Reliable Event Consumers",
-    summary:
-      "A practical article outline on message processing, deduplication, retries, and failure recovery in event-driven backend systems.",
-    type: "writing",
-    status: "completed",
-    areas: ["backend", "distributed-systems", "observability"],
-    technologies: ["Redis", "Kafka"],
-    date: "2026-04",
-    featured: false,
-    contentPath: "content/work/designing-reliable-event-consumers.mdx",
-    writing: {
-      readingTime: 6,
-      publishedAt: "2026-04",
-    },
-  },
-  {
-    slug: "why-rag-systems-fail-in-production",
-    title: "Why RAG Systems Fail in Production",
-    summary:
-      "Notes on retrieval quality, context boundaries, evaluation gaps, and operational feedback loops in retrieval-augmented systems.",
-    type: "writing",
-    status: "completed",
-    areas: ["ai-ml", "retrieval", "observability"],
-    technologies: ["Embeddings", "Vector Search"],
-    date: "2026-03",
-    featured: false,
-    writing: {
-      readingTime: 8,
-      publishedAt: "2026-03",
-    },
-  },
-  {
-    slug: "vector-retrieval-benchmark",
-    title: "Vector Retrieval Benchmark",
-    summary:
-      "A lab for benchmarking dense retrieval behavior across embedding choices, index settings, and evaluation queries.",
-    type: "lab",
-    status: "prototype",
-    areas: ["retrieval", "ai-ml", "databases"],
-    technologies: ["Python", "Embeddings", "HNSW"],
-    date: "2026-02",
-    featured: false,
-    contentPath: "content/work/vector-retrieval-benchmark.mdx",
-    lab: {
-      experimentQuestion:
-        "How do embedding choices and HNSW settings affect retrieval quality and latency tradeoffs?",
+    date: "2026-09",
+    featured: true,
+    priority: 3,
+    repository: "https://github.com/chetancrs7/portfolio",
+    project: {
+      role: "Design, architecture, and full-stack engineering",
+      outcome:
+        "A production portfolio with a schema-validated content registry, statically generated MDX case studies, and honest disclosure between designed vs implemented work.",
     },
   },
 ] satisfies WorkItemInput[];
