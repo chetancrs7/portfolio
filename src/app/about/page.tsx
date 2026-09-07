@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, GraduationCap } from "lucide-react";
 
+import { ExperienceTimeline } from "@/components/about/experience-timeline";
 import { AmbientGlow } from "@/components/design/ambient-glow";
 import { TechnicalGrid } from "@/components/design/technical-grid";
 import { PageContainer } from "@/components/layout/page-container";
@@ -20,7 +22,6 @@ import {
   currentDirection,
   education,
   engineeringFocus,
-  experience,
   technicalStack,
 } from "@/data/profile";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Backend and AI/ML engineer focused on reliable systems, applied machine learning, and honest evaluation. Computer Science at Sunway University.",
+    "Backend and AI/ML engineer focused on reliable systems, applied machine learning, and honest evaluation. Computer Science at Lancaster University.",
   alternates: { canonical: `${siteConfig.url}/about` },
   openGraph: {
     type: "profile",
@@ -46,7 +47,7 @@ const personJsonLd = {
   jobTitle: "Backend & AI/ML Engineer",
   alumniOf: {
     "@type": "CollegeOrUniversity",
-    name: "Sunway University",
+    name: "Lancaster University",
   },
   url: `${siteConfig.url}/about`,
   sameAs: [siteConfig.links.github].filter((href) => !isPlaceholderLink(href)),
@@ -81,39 +82,68 @@ export default function AboutPage() {
         <AmbientGlow className="-top-48 left-[6%] opacity-55" tone="violet" />
         <AmbientGlow className="top-24 right-[8%] opacity-45" tone="cyan" />
         <PageContainer className="relative py-16 sm:py-20 lg:py-24">
-          <div className="max-w-3xl">
-            <Badge variant="status">About</Badge>
-            <h1 className="type-h1 mt-7 text-balance">
-              {siteConfig.author.name}
-            </h1>
-            <p className="type-body-lg text-accent-cyan mt-4 font-medium">
-              {aboutIntro.identity}
-            </p>
-            <p className="type-body-lg text-muted-foreground mt-5 max-w-2xl">
-              {aboutIntro.statement}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link className={buttonVariants({ size: "sm" })} href="/contact">
-                Get in touch
-                <ArrowRight data-icon="inline-end" />
-              </Link>
-              {contactLinks.map((link) => (
-                <a
-                  className={cn(
-                    buttonVariants({ size: "sm", variant: "outline" }),
-                    "gap-1.5",
-                  )}
-                  href={link.href}
-                  key={link.label}
-                  rel="noreferrer"
-                  target={
-                    link.href.startsWith("mailto:") ? undefined : "_blank"
-                  }
+          <div className="lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-14">
+            {/* Identity */}
+            <div className="max-w-3xl">
+              <Badge variant="status">About</Badge>
+              <h1 className="type-h1 mt-7 text-balance">
+                {siteConfig.author.name}
+              </h1>
+              <p className="type-body-lg text-accent-cyan mt-4 font-medium">
+                {aboutIntro.identity}
+              </p>
+              <p className="type-body-lg text-muted-foreground mt-5 max-w-2xl">
+                {aboutIntro.statement}
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  className={buttonVariants({ size: "sm" })}
+                  href="/contact"
                 >
-                  {link.label}
-                  <ArrowUpRight data-icon="inline-end" />
-                </a>
-              ))}
+                  Get in touch
+                  <ArrowRight data-icon="inline-end" />
+                </Link>
+                {contactLinks.map((link) => (
+                  <a
+                    className={cn(
+                      buttonVariants({ size: "sm", variant: "outline" }),
+                      "gap-1.5",
+                    )}
+                    href={link.href}
+                    key={link.label}
+                    rel="noreferrer"
+                    target={
+                      link.href.startsWith("mailto:") ? undefined : "_blank"
+                    }
+                  >
+                    {link.label}
+                    <ArrowUpRight data-icon="inline-end" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Portrait */}
+            <div className="relative order-first mx-auto mb-10 w-48 sm:w-56 lg:order-last lg:mx-0 lg:mb-0 lg:w-72 xl:w-80">
+              <div
+                className="relative aspect-[3/4] overflow-hidden rounded-2xl"
+                style={{
+                  maskImage:
+                    "linear-gradient(to bottom, black 65%, transparent 100%)",
+                  WebkitMaskImage:
+                    "linear-gradient(to bottom, black 65%, transparent 100%)",
+                }}
+              >
+                <Image
+                  alt={`Portrait of ${siteConfig.author.name}`}
+                  className="object-cover"
+                  fill
+                  priority
+                  quality={95}
+                  sizes="(min-width: 1280px) 320px, (min-width: 1024px) 288px, (min-width: 640px) 224px, 192px"
+                  src="/images/portrait.png"
+                />
+              </div>
             </div>
           </div>
         </PageContainer>
@@ -171,50 +201,7 @@ export default function AboutPage() {
       {/* Experience */}
       <section className="section-space pt-0">
         <PageContainer>
-          <SectionHeading
-            description="Professional roles and the technical work behind them."
-            eyebrow="Experience"
-            title="Where I've worked."
-          />
-          <ol className="mt-10 space-y-4">
-            {experience.map((entry, index) => (
-              <li
-                className="border-border bg-card/55 rounded-2xl border p-6"
-                key={`${entry.role}-${index}`}
-              >
-                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                  <h3 className="type-h4 text-foreground">{entry.role}</h3>
-                  <span className="type-mono text-muted-foreground">
-                    {entry.period ?? "Dates to be added"}
-                  </span>
-                </div>
-                <p className="type-mono text-muted-foreground mt-1">
-                  {entry.organization ?? "Organization to be added"}
-                  {entry.location ? ` · ${entry.location}` : ""}
-                </p>
-                <p className="type-body text-muted-foreground mt-4">
-                  {entry.summary}
-                </p>
-                {entry.technologies && entry.technologies.length > 0 ? (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {entry.technologies.map((tech) => (
-                      <span
-                        className="type-mono text-muted-foreground border-border rounded-full border px-2 py-0.5 text-xs"
-                        key={tech}
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                {entry.placeholder ? (
-                  <p className="type-mono text-accent-cyan/80 mt-4">
-                    Placeholder — full role details to be confirmed.
-                  </p>
-                ) : null}
-              </li>
-            ))}
-          </ol>
+          <ExperienceTimeline />
         </PageContainer>
       </section>
 
@@ -240,43 +227,67 @@ export default function AboutPage() {
                   key={entry.degree}
                 >
                   <div className="flex items-start gap-4">
-                    <span
-                      aria-hidden="true"
-                      className="border-border bg-background/60 text-accent-cyan flex size-11 shrink-0 items-center justify-center rounded-full border"
-                    >
-                      <GraduationCap className="size-5" />
-                    </span>
+                    {entry.logo ? (
+                      <span
+                        className={cn(
+                          "border-border relative size-20 shrink-0 overflow-hidden rounded-xl border p-1.5 sm:size-24",
+                          entry.logo.tone === "light"
+                            ? "bg-white"
+                            : "bg-background/60",
+                        )}
+                      >
+                        <Image
+                          alt={entry.logo.alt}
+                          className="object-contain"
+                          fill
+                          sizes="(min-width: 640px) 96px, 80px"
+                          src={entry.logo.src}
+                        />
+                      </span>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="border-border bg-background/60 text-accent-cyan flex size-11 shrink-0 items-center justify-center rounded-full border"
+                      >
+                        <GraduationCap className="size-5" />
+                      </span>
+                    )}
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                         <h3 className="type-h4 text-foreground">
                           {entry.degree}
                         </h3>
-                        <span className="type-mono text-muted-foreground">
-                          {entry.period}
-                        </span>
+                        {entry.period ? (
+                          <span className="type-mono text-muted-foreground">
+                            {entry.period}
+                          </span>
+                        ) : null}
                       </div>
                       <p className="type-mono text-muted-foreground mt-1">
-                        {entry.institution} · {entry.location}
+                        {entry.institution}
+                        {entry.location ? ` · ${entry.location}` : ""}
                       </p>
                     </div>
                   </div>
 
                   <div className="mt-6 grid gap-6 sm:grid-cols-2">
-                    <div>
-                      <p className="type-mono text-muted-foreground uppercase">
-                        Relevant coursework
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {entry.coursework.map((course) => (
-                          <span
-                            className="type-mono text-muted-foreground border-border rounded-full border px-2 py-0.5 text-xs"
-                            key={course}
-                          >
-                            {course}
-                          </span>
-                        ))}
+                    {entry.coursework && entry.coursework.length > 0 ? (
+                      <div>
+                        <p className="type-mono text-muted-foreground uppercase">
+                          Relevant coursework
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {entry.coursework.map((course) => (
+                            <span
+                              className="type-mono text-muted-foreground border-border rounded-full border px-2 py-0.5 text-xs"
+                              key={course}
+                            >
+                              {course}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    ) : null}
                     {projects.length > 0 ? (
                       <div>
                         <p className="type-mono text-muted-foreground uppercase">
