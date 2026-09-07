@@ -4,8 +4,10 @@ export const siteConfig = {
   description:
     "Backend and AI/ML engineering portfolio featuring technical projects, system design, research and engineering writing.",
   // Configurable via NEXT_PUBLIC_SITE_URL; falls back to a safe placeholder so
-  // the build never depends on a hardcoded production domain.
-  url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com").replace(
+  // the build never depends on a hardcoded production domain. Uses || (not ??)
+  // so an empty-string env var falls back too — otherwise `new URL("")` throws
+  // during metadata evaluation in production builds.
+  url: (process.env.NEXT_PUBLIC_SITE_URL || "https://example.com").replace(
     /\/$/,
     "",
   ),
