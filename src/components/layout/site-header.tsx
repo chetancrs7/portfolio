@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import { ExternalAction } from "@/components/layout/external-action";
 import { MobileNav } from "@/components/layout/mobile-nav";
@@ -6,10 +9,34 @@ import { NavLink } from "@/components/layout/nav-link";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { mainNavigation, shellActions } from "@/config/navigation";
 import { siteConfig } from "@/config/site";
+import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const showBlur = isScrolled && !isHovered;
+
   return (
-    <header className="border-border/70 bg-background/72 sticky top-0 z-40 border-b backdrop-blur-md">
+    <header
+      className={cn(
+        "border-border/70 sticky top-0 z-40 border-b transition-all duration-300",
+        showBlur
+          ? "bg-background/60 backdrop-blur-xl"
+          : "bg-background/95"
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="container-page flex min-h-20 items-center justify-between gap-4">
         <Link
           className="group focus-visible:ring-ring/45 rounded-full outline-none focus-visible:ring-3"
@@ -21,7 +48,7 @@ export function SiteHeader() {
             className="text-foreground flex max-w-[13rem] items-center gap-2 truncate font-mono text-sm font-semibold uppercase sm:max-w-none"
           >
             <span className="bg-accent-cyan size-1.5 rounded-full shadow-[0_0_12px_var(--accent-cyan)]" />
-            {siteConfig.name} / Engineering
+            {siteConfig.name}
           </span>
         </Link>
 
