@@ -78,62 +78,199 @@ export const engineeringFocus: EngineeringFocus[] = [
   },
 ] as const;
 
-export type ExperienceEntry = {
-  role: string;
-  organization: string | null;
-  location: string | null;
-  period: string | null;
-  summary: string;
-  highlights?: string[];
-  technologies?: string[];
-  projectSlugs?: string[];
-  placeholder?: boolean;
+export const experienceIntro = {
+  headingLead: "Building solutions.",
+  headingAccent: "Driving impact.",
+  subtitle:
+    "A journey of turning ideas into reliable systems, solving real-world problems, and delivering measurable results.",
+  note: "I focus on building robust systems, leveraging AI/ML and modern technologies to create meaningful, well-engineered software.",
+} as const;
+
+export type ExperienceStat = {
+  icon: "briefcase" | "building" | "code";
+  value: string;
+  label: string;
 };
 
-// Experience details are pending confirmation and will be filled in with real
-// employer/date information. Rendered as a clearly-marked placeholder.
+export const experienceStats: ExperienceStat[] = [
+  { icon: "briefcase", value: "1+", label: "Years Experience" },
+  { icon: "building", value: "3", label: "Companies" },
+  { icon: "code", value: "3+", label: "Major Contributions" },
+];
+
+export type ExperienceEntry = {
+  role: string;
+  organization: string;
+  location: string;
+  period: string;
+  mode: "On-site" | "Remote" | "Hybrid";
+  highlights: string[];
+  technologies: string[];
+  cta?: { label: string; href: string };
+  accent: "blue" | "violet" | "cyan";
+  icon: "briefcase" | "flask" | "code";
+  logo?: { src: string; alt: string; tone?: "light" | "dark" };
+};
+
 export const experience: ExperienceEntry[] = [
   {
-    role: "Software Engineering Intern",
-    organization: null,
-    location: null,
-    period: null,
-    summary:
-      "Implemented and debugged production features in an existing ASP.NET / C# / MySQL application used by accounting and finance staff — working within an established codebase and shipping fixes into a live system.",
-    technologies: ["C#", "ASP.NET", "MySQL"],
-    placeholder: true,
+    role: "Research Assistant",
+    organization: "Sunway University",
+    location: "Malaysia",
+    period: "Apr 2026 — Present",
+    mode: "On-site",
+    highlights: [
+      "Develop backend for a LoRa-based real-time tracking system under the APNIC ISIF Asia 2025 Project.",
+      "Build MQTT/API pipelines, REST APIs, and PostgreSQL database for sensor data ingestion.",
+      "Optimise system for low-latency and high-frequency data processing.",
+    ],
+    technologies: [
+      "Node.js",
+      "PostgreSQL",
+      "MQTT",
+      "REST APIs",
+      "LoRa",
+    ],
+    cta: {
+      label: "View project",
+      href: "/work/iot-hiker-tracking-platform",
+    },
+    accent: "blue",
+    icon: "flask",
+    logo: {
+      src: "/images/companies/sunway-university.png",
+      alt: "Sunway University crest",
+      tone: "light",
+    },
   },
-] as const;
+  {
+    role: "Backend Developer Intern",
+    organization: "Studio20 Sdn Bhd",
+    location: "Malaysia",
+    period: "Jan 2026 — Apr 2026",
+    mode: "On-site",
+    highlights: [
+      "Developed server-side logic, RESTful APIs, and content management systems using TypeScript with Nest.js and Payload CMS.",
+      "Leveraged Vercel for continuous integration (CI), automated deployments, and hosting applications.",
+    ],
+    technologies: [
+      "TypeScript",
+      "Nest.js",
+      "Payload CMS",
+      "Vercel",
+    ],
+    accent: "violet",
+    icon: "code",
+    logo: {
+      src: "/images/companies/studio-20.svg",
+      alt: "Studio 20 logo",
+      tone: "light",
+    },
+  },
+  {
+    role: "Values For Life Internship Programme",
+    organization: "PwC",
+    location: "Moka, Mauritius",
+    period: "Mar 2023 — Apr 2023",
+    mode: "On-site",
+    highlights: [
+      "Developed a web application using ASP.NET, C#, and MySQL.",
+      "Assisted in front-end design and user experience improvements.",
+      "Supported back-end development and database integration.",
+    ],
+    technologies: ["ASP.NET", "C#", "MySQL", "HTML", "CSS"],
+    accent: "cyan",
+    icon: "briefcase",
+    logo: {
+      src: "/images/companies/pwc.svg",
+      alt: "PwC logo",
+      tone: "light",
+    },
+  },
+];
 
 export type EducationEntry = {
   degree: string;
   institution: string;
-  location: string;
-  period: string;
-  coursework: string[];
+  faculty?: string;
+  location?: string;
+  period?: string;
+  coursework?: string[];
+  achievements?: string[];
   projectSlugs?: string[];
+  logo?: { src: string; alt: string; tone?: "light" | "dark" };
 };
 
 export const education: EducationEntry[] = [
   {
-    degree: "BSc Computer Science",
-    institution: "Sunway University",
+    degree: "BSc (Honors) in Computer Science",
+    institution: "Lancaster University",
+    faculty: "School of Computing and Communications",
     location: "Malaysia",
-    period: "2023 – 2026",
+    period: "Sept. 2023 – Sept. 2026",
+    logo: {
+      src: "/images/institutions/lancaster-university.svg",
+      alt: "Lancaster University Logo",
+    },
     coursework: [
       "Object-Oriented Programming",
       "Database Systems",
       "Operating Systems",
       "Computer Networks",
       "Web Development",
-      "Machine Learning",
+      "Computational Intelligence",
+      "Data Mining and Knowledge Discovery",
     ],
     projectSlugs: [
       "hybrid-sentiment-intelligence-system",
       "iot-hiker-tracking-platform",
     ],
   },
-] as const;
+
+  {
+    degree: "A-Levels",
+    institution: "Royal College Curepipe",
+    faculty: "Cambridge International",
+    location: "Mauritius",
+    period: "Jan. 2020 – Nov. 2022",
+    coursework: [
+      "Mathematics — A*",
+      "Physics — A*",
+      "Computer Science — A*",
+      "Accounting — A",
+      "General Paper — A",
+    ],
+    achievements: [
+      "80th Overall National Rank — Cambridge Assessment International Education, Mauritius",
+    ],
+    logo: {
+      src: "/images/institutions/rcc_logo.png",
+      alt: "Royal College Curepipe Logo",
+    },
+  },
+
+  {
+    degree: "O-Levels",
+    institution: "Royal College Curepipe",
+    faculty: "Cambridge International",
+    location: "Mauritius",
+    period: "Jan. 2018 – Nov. 2020",
+    coursework: [
+      "Additional Mathematics — A*",
+      "Mathematics — A*",
+      "English — A",
+      "French — A",
+      "Chemistry — A*",
+      "Physics — A",
+      "Computer Science — A*",
+      "Principles of Accounting — A*",
+    ],
+    logo: {
+      src: "/images/institutions/rcc_logo.png",
+      alt: "Royal College Curepipe Logo",
+    },
+  },
+];
 
 export type StackGroup = {
   group: string;

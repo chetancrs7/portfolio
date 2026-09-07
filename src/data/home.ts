@@ -108,7 +108,7 @@ export const engineeringPrinciples = [
 export const experiencePreview = [
   {
     area: "Education",
-    organization: "Sunway University · BSc Computer Science",
+    organization: "Lancaster University · BSc Computer Science",
     period: "2023 – 2026",
   },
   {
