@@ -14,6 +14,13 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   agentRules: false,
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
+  images: {
+    // Allows first-party SVG logos (companies/institutions) to render through
+    // next/image, sandboxed so the SVG cannot execute scripts.
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
