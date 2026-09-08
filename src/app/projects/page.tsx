@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { FeaturedWorkSection } from "@/components/projects/featured-work-section";
+import { GitHubContributions } from "@/components/projects/github-contributions";
 import { WorkAreasSummary } from "@/components/projects/work-areas-summary";
 import { WorkCta } from "@/components/projects/work-cta";
 import { WorkExplorer } from "@/components/projects/work-explorer";
@@ -142,6 +143,21 @@ export default async function WorkPage({ searchParams }: WorkPageProps) {
   return (
     <div className="technical-background min-h-screen">
       <WorkHeader counts={counts} totalCount={publishedWork.length} />
+
+      <section className="section-space pb-0">
+        <PageContainer>
+          <SectionHeading
+            eyebrow="Activity"
+            title="GitHub contributions."
+            description="A year of commits, pull requests, issues, and code reviews."
+          />
+          <GitHubContributions
+            className="border-border bg-card/55 mt-10 rounded-2xl border p-5 sm:p-6"
+            username="chetancrs7"
+          />
+        </PageContainer>
+      </section>
+
       <FeaturedWorkSection items={featuredWork} />
       <WorkExplorer
         activeArea={activeArea}
