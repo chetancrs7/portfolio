@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
+import { Analytics } from "@vercel/analytics/next";
 
 import "@/app/globals.css";
 import { siteConfig } from "@/config/site";
@@ -65,6 +66,7 @@ export default function RootLayout({
         <TooltipProvider>
           <SiteShell>{children}</SiteShell>
         </TooltipProvider>
+        <Analytics />
       </body>
     </html>
   );
